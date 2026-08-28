@@ -52468,25 +52468,25 @@ MonoBehaviour:
   enemyProbabilities:
   - type: 0
     prefab: {fileID: 2837839175989084653, guid: 3a01d17cb1841f04baae885eb6d251b4, type: 3}
-    baseProbability: 90
+    baseProbability: 0
   - type: 1
     prefab: {fileID: 5573330544155312386, guid: 0d77e0282df901d4ea27b073b0df7f33, type: 3}
-    baseProbability: 5
+    baseProbability: 0
   - type: 2
     prefab: {fileID: 0}
-    baseProbability: 4
+    baseProbability: 0
   - type: 2
     prefab: {fileID: 786103868222368600, guid: 58eb7d8369789764b915a7db5d69417b, type: 3}
-    baseProbability: 0.4
+    baseProbability: 0
   - type: 4
     prefab: {fileID: 4272713368791650683, guid: da4d647fcb5fa75429714bfdd7b56b42, type: 3}
-    baseProbability: 0.4
+    baseProbability: 0
   - type: 5
     prefab: {fileID: 4823474469279529665, guid: 42f409ab920950946bfccdc1b8c21d67, type: 3}
-    baseProbability: 0.4
+    baseProbability: 0
   - type: 6
     prefab: {fileID: 623972750672646248, guid: 9aee48ac6192b2846b58d5b675143cef, type: 3}
-    baseProbability: 0.4
+    baseProbability: 0
   waypoints:
   - {fileID: 208557345}
   - {fileID: 71765651}
@@ -52494,7 +52494,8 @@ MonoBehaviour:
   - {fileID: 1072831379}
   - {fileID: 1640840065}
   - {fileID: 1891444859}
-  spawnInfinito: 1
+  spawnInfinito: 0
+  modoNiveles: 1
   cantidadEnemigos: 5
   tiempoEntreEnemigos: 1.5
   enemigosPorOleada: 5
@@ -52502,7 +52503,10 @@ MonoBehaviour:
   velocidadInicial: 5
   incrementoVelocidad: 0.05
   velocidadMaxima: 10
-  oleadaActual: 1
+  reduccionProbabilidadBasePorOleada: 0.1
+  incrementoDificultadPorNivel: 0.15
+  nivelActual: 2
+  oleadaActual: 4
 --- !u!4 &904492886
 Transform:
   m_ObjectHideFlags: 0
