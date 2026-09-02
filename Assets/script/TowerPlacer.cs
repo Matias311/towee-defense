@@ -1,9 +1,20 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class TowerPlacer : MonoBehaviour
 {
     [Header("Prefab de la torre")]
     public GameObject towerPrefab;
+    [Tooltip("Tipos de torres posibles como recompensa")]
+    public List<GameObject> torresDisponibles = new List<GameObject>();
+    [Tooltip("Estadisticas que usaran automaticamente todas las torres colocadas")]
+    public TowerStatsData estadisticasTorre;
+
+    [Header("Recompensas")]
+    [Tooltip("Puntos necesarios para obtener una torre aleatoria")]
+    public int puntosPorTorre = 24;
+    public int puntosActuales;
+    public int torresObtenidas;
 
     [Header("Validacion")]
     [Tooltip("Radio de espacio libre que necesita la torre para poder colocarse")]
@@ -28,6 +39,11 @@ public class TowerPlacer : MonoBehaviour
 
     void Start()
     {
+        if (torresDisponibles.Count == 0 && towerPrefab != null)
+        {
+            torresDisponibles.Add(towerPrefab);
+        }
+
         if (camaraPrincipal == null)
         {
             camaraPrincipal = Camera.main;
@@ -37,6 +53,31 @@ public class TowerPlacer : MonoBehaviour
         {
             EmpezarColocacion();
         }
+    }
+
+    public void RegistrarPuntos(int puntos)
+    {
+        if (puntos <= 0 || puntosPorTorre <= 0) return;
+
+        puntosActuales += puntos;
+        while (puntosActuales >= puntosPorTorre)
+        {
+            puntosActuales -= puntosPorTorre;
+            ObtenerTorreAleatoria();
+        }
+    }
+
+    void ObtenerTorreAleatoria()
+    {
+        if (torresDisponibles.Count == 0)
+        {
+            Debug.LogWarning("[TOWER] No hay torres disponibles para entregar.");
+            return;
+        }
+
+        GameObject torre = torresDisponibles[Random.Range(0, torresDisponibles.Count)];
+        torresObtenidas++;
+        Debug.Log($"[TOWER] Torre obtenida: {torre.name}. Total: {torresObtenidas}");
     }
 
     void Update()
@@ -114,7 +155,17 @@ public class TowerPlacer : MonoBehaviour
         }
 
         // Confirmar colocacion: instanciar la torre real
-        Instantiate(towerPrefab, previewTorre.transform.position, Quaternion.identity);
+        GameObject torre = Instantiate(
+            towerPrefab,
+            previewTorre.transform.position,
+            Quaternion.identity
+        );
+        TowerStats estadisticas = torre.GetComponent<TowerStats>();
+        if (estadisticas == null)
+        {
+            estadisticas = torre.AddComponent<TowerStats>();
+        }
+        estadisticas.Configurar(estadisticasTorre);
 
         // Destruir el preview actual y crear uno nuevo para seguir colocando torres
         Destroy(previewTorre);

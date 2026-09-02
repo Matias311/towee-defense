@@ -18,6 +18,8 @@ public class EnemyProbability {
     public float baseProbability;
     [Tooltip("Probabilidad calculada para la wave actual")]
     public float probabilidadActual;
+    [Tooltip("Estadisticas que usaran los enemigos de este tipo")]
+    public EnemyStatsData estadisticas;
 }
 
 public class EnemySpawner : MonoBehaviour {
@@ -461,4 +463,24 @@ public class EnemySpawner : MonoBehaviour {
                     + (ObtenerIncrementoVelocidad() * enemigosCreados);
                 movimiento.speed = Mathf.Min(velocidadCalculada, ObtenerVelocidadMaxima());
             }
+
+            EnemyStats estadisticas = nuevoEnemigo.GetComponent<EnemyStats>();
+            if (estadisticas == null) {
+                estadisticas = nuevoEnemigo.AddComponent<EnemyStats>();
+            }
+
+            EnemyStatsData datosSeleccionados = null;
+            foreach (var prob in enemyProbabilities) {
+                if (prob != null && prob.type == tipoSeleccionado) {
+                    datosSeleccionados = prob.estadisticas;
+                    break;
+                }
+            }
+
+            estadisticas.Configurar(
+                tipoSeleccionado,
+                nivelActual,
+                oleadaActual,
+                datosSeleccionados
+            );
     }}
