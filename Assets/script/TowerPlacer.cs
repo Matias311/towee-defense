@@ -13,8 +13,12 @@ public class TowerPlacer : MonoBehaviour
     [Header("Recompensas")]
     [Tooltip("Puntos necesarios para obtener una torre aleatoria")]
     public int puntosPorTorre = 24;
+    [Tooltip("Cantidad de torres aleatorias entregadas al comenzar la partida")]
+    [Range(0, 3)]
+    public int torresIniciales = 3;
     public int puntosActuales;
     public int torresObtenidas;
+    public int torresEnInventario;
     [Tooltip("Cantidad de recompensas recientes en las que una torre no puede repetirse")]
     public int recompensasAntiRepeticion = 2;
     [Tooltip("Wave actual usada para ajustar el azar de las torres")]
@@ -26,6 +30,11 @@ public class TowerPlacer : MonoBehaviour
 
     [Tooltip("Capas que bloquean la colocacion (camino y estructuras)")]
     public LayerMask capasBloqueadas;
+
+    [Tooltip("Bloquea la colocacion sobre el recorrido formado por los waypoints del spawner")]
+    public bool bloquearCaminoPorWaypoints = true;
+    [Tooltip("Ancho de seguridad del camino alrededor de los segmentos entre waypoints")]
+    public float radioCamino = 1.5f;
 
     [Header("Referencias")]
     public Camera camaraPrincipal;
@@ -40,14 +49,81 @@ public class TowerPlacer : MonoBehaviour
 
     private GameObject previewTorre;
     private bool colocando = false;
+    private GameObject torreSeleccionada;
+    private readonly List<GameObject> inventarioTorres = new List<GameObject>();
     private readonly List<TowerType> tiposObtenidos = new List<TowerType>();
     private readonly List<TowerType> tiposRecientes = new List<TowerType>();
+    private readonly List<GameObject> variantesAutomaticas = new List<GameObject>();
 
     void Start()
     {
         if (torresDisponibles.Count == 0 && towerPrefab != null)
         {
             torresDisponibles.Add(towerPrefab);
+        }
+
+        CrearVariantesAutomaticasSiHaceFalta();
+
+        for (int i = 0; i < torresIniciales; i++)
+        {
+            ObtenerTorreAleatoria();
+        }
+
+        void CrearVariantesAutomaticasSiHaceFalta()
+        {
+            if (torresDisponibles.Count < 4) return;
+
+            bool tieneTipoEspecializado = false;
+            foreach (GameObject torre in torresDisponibles)
+            {
+                if (torre == null) continue;
+                if (torre.GetComponent<TorreFrancotiradorStats>() != null
+                    || torre.GetComponent<TorreAmetralladoraStats>() != null
+                    || torre.GetComponent<TorreCanonStats>() != null)
+                {
+                    tieneTipoEspecializado = true;
+                    break;
+                }
+            }
+
+            if (tieneTipoEspecializado) return;
+
+            GameObject plantilla = torresDisponibles[0];
+            if (plantilla == null) return;
+
+            TowerType[] tipos = {
+                TowerType.Basica,
+                TowerType.Francotirador,
+                TowerType.Ametralladora,
+                TowerType.Canon
+            };
+            List<GameObject> variantes = new List<GameObject>();
+
+            foreach (TowerType tipo in tipos)
+            {
+                GameObject variante = Instantiate(plantilla);
+                variante.name = $"{plantilla.name}_{tipo}";
+                variante.SetActive(false);
+
+                switch (tipo)
+                {
+                    case TowerType.Francotirador:
+                        variante.AddComponent<TorreFrancotiradorStats>();
+                        break;
+                    case TowerType.Ametralladora:
+                        variante.AddComponent<TorreAmetralladoraStats>();
+                        break;
+                    case TowerType.Canon:
+                        variante.AddComponent<TorreCanonStats>();
+                        break;
+                }
+
+                variantes.Add(variante);
+                variantesAutomaticas.Add(variante);
+            }
+
+            torresDisponibles = variantes;
+            Debug.Log("[TOWER] Se generaron variantes automaticas: Basica, Francotirador, Ametralladora y Canon.");
         }
 
         if (camaraPrincipal == null)
@@ -93,13 +169,18 @@ public class TowerPlacer : MonoBehaviour
         TowerType tipo = ObtenerTipoTorre(torre);
         tiposObtenidos.Add(tipo);
         tiposRecientes.Add(tipo);
+        inventarioTorres.Add(torre);
+        torresEnInventario = inventarioTorres.Count;
         while (tiposRecientes.Count > recompensasAntiRepeticion)
         {
             tiposRecientes.RemoveAt(0);
         }
 
         torresObtenidas++;
-        Debug.Log($"[TOWER] Torre obtenida: {torre.name}. Total: {torresObtenidas}");
+        Debug.Log($"[TOWER] Torre obtenida: {torre.name}. Total: {torresObtenidas}. En inventario: {torresEnInventario}");
+        if (!colocando) {
+            EmpezarColocacion();
+        }
     }
 
     List<GameObject> ObtenerCandidatas()
@@ -237,10 +318,13 @@ public class TowerPlacer : MonoBehaviour
     // Llamar esta funcion desde un boton de UI para empezar a colocar una torre
     public void EmpezarColocacion()
     {
-        if (towerPrefab == null) return;
+        if (colocando || inventarioTorres.Count == 0) return;
 
+        torreSeleccionada = inventarioTorres[0];
         colocando = true;
-        previewTorre = Instantiate(towerPrefab);
+        previewTorre = Instantiate(torreSeleccionada);
+        previewTorre.SetActive(true);
+        PrepararVisualizadorRango(previewTorre);
         // Desactivar collider del preview para que no interfiera con el raycast
         Collider col = previewTorre.GetComponent<Collider>();
         if (col != null) col.enabled = false;
@@ -264,7 +348,45 @@ public class TowerPlacer : MonoBehaviour
     {
         // Si hay algo (camino o estructura) dentro del radio, no es valido
         Collider[] colisiones = Physics.OverlapSphere(posicion, radioValidacion, capasBloqueadas);
-        return colisiones.Length == 0;
+        if (colisiones.Length > 0) return false;
+
+        if (bloquearCaminoPorWaypoints && EstaSobreElCamino(posicion)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    bool EstaSobreElCamino(Vector3 posicion)
+    {
+        EnemySpawner spawner = FindAnyObjectByType<EnemySpawner>();
+        if (spawner == null || spawner.waypoints == null || spawner.waypoints.Count < 2) {
+            return false;
+        }
+
+        float radio = Mathf.Max(radioValidacion, radioCamino);
+        float radioCuadrado = radio * radio;
+
+        for (int i = 0; i < spawner.waypoints.Count - 1; i++) {
+            Transform inicio = spawner.waypoints[i];
+            Transform final = spawner.waypoints[i + 1];
+            if (inicio == null || final == null) continue;
+
+            Vector3 inicioPlano = new Vector3(inicio.position.x, posicion.y, inicio.position.z);
+            Vector3 finalPlano = new Vector3(final.position.x, posicion.y, final.position.z);
+            Vector3 segmento = finalPlano - inicioPlano;
+            float longitudCuadrada = segmento.sqrMagnitude;
+            float progreso = longitudCuadrada > 0f
+                ? Mathf.Clamp01(Vector3.Dot(posicion - inicioPlano, segmento) / longitudCuadrada)
+                : 0f;
+            Vector3 puntoCercano = inicioPlano + segmento * progreso;
+
+            if ((posicion - puntoCercano).sqrMagnitude <= radioCuadrado) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     void PintarPreview(bool valido)
@@ -292,23 +414,42 @@ public class TowerPlacer : MonoBehaviour
 
         // Confirmar colocacion: instanciar la torre real
         GameObject torre = Instantiate(
-            towerPrefab,
+            torreSeleccionada,
             previewTorre.transform.position,
             Quaternion.identity
         );
+        torre.SetActive(true);
         TowerStats estadisticas = torre.GetComponent<TowerStats>();
         if (estadisticas == null)
         {
             estadisticas = torre.AddComponent<TowerStats>();
         }
+        if (torre.GetComponent<TowerAttackController>() == null)
+        {
+            torre.AddComponent<TowerAttackController>();
+        }
+        PrepararVisualizadorRango(torre);
         ConfigurarTipoAutomatico(torre, estadisticas);
         estadisticas.Configurar(estadisticasTorre);
+        inventarioTorres.RemoveAt(0);
+        torresEnInventario = inventarioTorres.Count;
 
         // Destruir el preview actual y crear uno nuevo para seguir colocando torres
         Destroy(previewTorre);
-        previewTorre = Instantiate(towerPrefab);
-        Collider col = previewTorre.GetComponent<Collider>();
-        if (col != null) col.enabled = false;
+        previewTorre = null;
+        colocando = false;
+        torreSeleccionada = null;
+        if (inventarioTorres.Count > 0) {
+            EmpezarColocacion();
+        }
+    }
+
+    void PrepararVisualizadorRango(GameObject torre)
+    {
+        if (torre.GetComponent<TowerRangeVisualizer>() == null)
+        {
+            torre.AddComponent<TowerRangeVisualizer>();
+        }
     }
 
     void ConfigurarTipoAutomatico(GameObject torre, TowerStats estadisticas)

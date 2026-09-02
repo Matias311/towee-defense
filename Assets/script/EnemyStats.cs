@@ -3,6 +3,7 @@ using UnityEngine;
 public class EnemyStats : EnemyBaseStats {
     [Header("Datos base")]
     public EnemyStatsData datos;
+    public EnemyType tipo;
 
     [Header("Estadisticas actuales")]
     public float vidaMaxima = 100f;
@@ -31,6 +32,7 @@ public class EnemyStats : EnemyBaseStats {
         int wave,
         EnemyStatsData datosConfigurados = null
     ) {
+        this.tipo = tipo;
         if (datosConfigurados != null) {
             datos = datosConfigurados;
         }
@@ -68,6 +70,21 @@ public class EnemyStats : EnemyBaseStats {
             : Mathf.RoundToInt(10f * multiplicador);
         AplicarPasiva();
         configurado = true;
+        RegistrarLogEstadisticas();
+    }
+
+    void RegistrarLogEstadisticas() {
+        string tipoAlteradoTexto = tipoDaño == DamageType.Alterado
+            ? $", alterado={tipoDañoAlterado}, dañoAlterado={dañoAlterado:F1}, duracionAlterado={(datos != null ? datos.duracionDañoAlterado : 3f):F1}s"
+            : string.Empty;
+
+        Debug.Log(
+            $"[ENEMY] {name} | tipo={tipo}, " +
+            $"vida={vidaActual:F1}/{vidaMaxima:F1}, daño={daño:F1}, " +
+            $"tipoDaño={tipoDaño}, penetracion={penetracion:F1}, defensa={defensa:F1}, " +
+            $"pasiva={pasiva}, bonusPasiva={bonusPasiva:F2}, recompensa={recompensa}" +
+            tipoAlteradoTexto
+        );
     }
 
     public DamageData CrearDanio() {
