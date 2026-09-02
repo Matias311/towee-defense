@@ -15,6 +15,10 @@ public class TowerPlacer : MonoBehaviour
     public int puntosPorTorre = 24;
     public int puntosActuales;
     public int torresObtenidas;
+    [Tooltip("Cantidad de recompensas recientes en las que una torre no puede repetirse")]
+    public int recompensasAntiRepeticion = 2;
+    [Tooltip("Wave actual usada para ajustar el azar de las torres")]
+    public int waveActual = 1;
 
     [Header("Validacion")]
     [Tooltip("Radio de espacio libre que necesita la torre para poder colocarse")]
@@ -36,6 +40,8 @@ public class TowerPlacer : MonoBehaviour
 
     private GameObject previewTorre;
     private bool colocando = false;
+    private readonly List<TowerType> tiposObtenidos = new List<TowerType>();
+    private readonly List<TowerType> tiposRecientes = new List<TowerType>();
 
     void Start()
     {
@@ -67,6 +73,11 @@ public class TowerPlacer : MonoBehaviour
         }
     }
 
+    public void ActualizarWave(int wave)
+    {
+        waveActual = Mathf.Max(1, wave);
+    }
+
     void ObtenerTorreAleatoria()
     {
         if (torresDisponibles.Count == 0)
@@ -75,9 +86,134 @@ public class TowerPlacer : MonoBehaviour
             return;
         }
 
-        GameObject torre = torresDisponibles[Random.Range(0, torresDisponibles.Count)];
+        List<GameObject> candidatas = ObtenerCandidatas();
+        GameObject torre = SeleccionarTorrePonderada(candidatas);
+        if (torre == null) return;
+
+        TowerType tipo = ObtenerTipoTorre(torre);
+        tiposObtenidos.Add(tipo);
+        tiposRecientes.Add(tipo);
+        while (tiposRecientes.Count > recompensasAntiRepeticion)
+        {
+            tiposRecientes.RemoveAt(0);
+        }
+
         torresObtenidas++;
         Debug.Log($"[TOWER] Torre obtenida: {torre.name}. Total: {torresObtenidas}");
+    }
+
+    List<GameObject> ObtenerCandidatas()
+    {
+        List<TowerType> faltantes = new List<TowerType>();
+        foreach (GameObject torre in torresDisponibles)
+        {
+            if (torre == null) continue;
+
+            TowerType tipo = ObtenerTipoTorre(torre);
+            if (!tiposObtenidos.Contains(tipo) && !faltantes.Contains(tipo))
+            {
+                faltantes.Add(tipo);
+            }
+        }
+
+        if (faltantes.Count > 0 && torresObtenidas % 3 == 2)
+        {
+            List<GameObject> garantizadas = new List<GameObject>();
+            foreach (GameObject torre in torresDisponibles)
+            {
+                if (torre != null && faltantes.Contains(ObtenerTipoTorre(torre)))
+                {
+                    garantizadas.Add(torre);
+                }
+            }
+            return garantizadas;
+        }
+
+        if (torresObtenidas == 0)
+        {
+            List<GameObject> iniciales = new List<GameObject>();
+            foreach (GameObject torre in torresDisponibles)
+            {
+                TowerType tipo = ObtenerTipoTorre(torre);
+                if (torre != null && (tipo == TowerType.Basica || tipo == TowerType.Ametralladora))
+                {
+                    iniciales.Add(torre);
+                }
+            }
+
+            if (iniciales.Count > 0) return iniciales;
+        }
+
+        return torresDisponibles;
+    }
+
+    GameObject SeleccionarTorrePonderada(List<GameObject> candidatas)
+    {
+        float total = 0f;
+        foreach (GameObject torre in candidatas)
+        {
+            if (torre == null || tiposRecientes.Contains(ObtenerTipoTorre(torre))) continue;
+            total += ObtenerPesoTorre(torre);
+        }
+
+        if (total <= 0f)
+        {
+            foreach (GameObject torre in candidatas)
+            {
+                if (torre != null) total += ObtenerPesoTorre(torre);
+            }
+        }
+
+        if (total <= 0f) return null;
+
+        float valor = Random.value * total;
+        foreach (GameObject torre in candidatas)
+        {
+            if (torre == null || tiposRecientes.Contains(ObtenerTipoTorre(torre))) continue;
+
+            valor -= ObtenerPesoTorre(torre);
+            if (valor <= 0f) return torre;
+        }
+
+        for (int i = candidatas.Count - 1; i >= 0; i--)
+        {
+            if (candidatas[i] != null) return candidatas[i];
+        }
+
+        return null;
+    }
+
+    float ObtenerPesoTorre(GameObject torre)
+    {
+        TowerType tipo = ObtenerTipoTorre(torre);
+        float progreso = Mathf.Clamp01((waveActual - 1) / 14f);
+
+        switch (tipo)
+        {
+            case TowerType.Basica:
+                return Mathf.Lerp(40f, 15f, progreso);
+            case TowerType.Ametralladora:
+                return Mathf.Lerp(30f, 20f, progreso);
+            case TowerType.Francotirador:
+            case TowerType.Canon:
+                return Mathf.Lerp(15f, 32.5f, progreso);
+            default:
+                return 1f;
+        }
+    }
+
+    TowerType ObtenerTipoTorre(GameObject torre)
+    {
+        TorreFrancotiradorStats francotirador = torre.GetComponent<TorreFrancotiradorStats>();
+        if (francotirador != null) return TowerType.Francotirador;
+
+        TorreAmetralladoraStats ametralladora = torre.GetComponent<TorreAmetralladoraStats>();
+        if (ametralladora != null) return TowerType.Ametralladora;
+
+        TorreCanonStats canon = torre.GetComponent<TorreCanonStats>();
+        if (canon != null) return TowerType.Canon;
+
+        return TowerType.Basica;
     }
 
     void Update()
@@ -165,6 +301,7 @@ public class TowerPlacer : MonoBehaviour
         {
             estadisticas = torre.AddComponent<TowerStats>();
         }
+        ConfigurarTipoAutomatico(torre, estadisticas);
         estadisticas.Configurar(estadisticasTorre);
 
         // Destruir el preview actual y crear uno nuevo para seguir colocando torres
@@ -172,6 +309,26 @@ public class TowerPlacer : MonoBehaviour
         previewTorre = Instantiate(towerPrefab);
         Collider col = previewTorre.GetComponent<Collider>();
         if (col != null) col.enabled = false;
+    }
+
+    void ConfigurarTipoAutomatico(GameObject torre, TowerStats estadisticas)
+    {
+        if (torre.GetComponent<TorreFrancotiradorStats>() != null)
+        {
+            estadisticas.tipo = TowerType.Francotirador;
+        }
+        else if (torre.GetComponent<TorreAmetralladoraStats>() != null)
+        {
+            estadisticas.tipo = TowerType.Ametralladora;
+        }
+        else if (torre.GetComponent<TorreCanonStats>() != null)
+        {
+            estadisticas.tipo = TowerType.Canon;
+        }
+        else if (torre.GetComponent<TorreBasicaStats>() != null)
+        {
+            estadisticas.tipo = TowerType.Basica;
+        }
     }
 
     void CancelarColocacion()

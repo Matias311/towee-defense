@@ -3,6 +3,7 @@ using UnityEngine;
 public class TowerStats : TowerBaseStats {
     [Header("Datos base")]
     public TowerStatsData datos;
+    public TowerType tipo = TowerType.Basica;
 
     [Header("Estadisticas actuales")]
     private float temporizadorAtaque;
@@ -12,9 +13,13 @@ public class TowerStats : TowerBaseStats {
     }
 
     public override void Configurar(TowerStatsData datosConfigurados) {
-        if (datosConfigurados == null) return;
+        if (datosConfigurados == null) {
+            AplicarPerfilPorTipo();
+            return;
+        }
 
         datos = datosConfigurados;
+        tipo = datos.tipo;
         daño = datos.daño;
         defensa = datos.defensa;
         penetracion = datos.penetracion;
@@ -35,14 +40,43 @@ public class TowerStats : TowerBaseStats {
     }
 
     void AplicarDatosBase() {
-        if (datos == null) return;
+        if (datos == null) {
+            AplicarPerfilPorTipo();
+            return;
+        }
 
+        tipo = datos.tipo;
         daño = datos.daño;
         defensa = datos.defensa;
         penetracion = datos.penetracion;
         rango = datos.rango;
         tiempoEntreAtaques = Mathf.Max(0.05f, datos.tiempoEntreAtaques);
         buffArea = datos.buffArea;
+    }
+
+    protected virtual void AplicarPerfilPorTipo() {
+        switch (tipo) {
+            case TowerType.Francotirador:
+                daño = 80f;
+                rango = 12f;
+                tiempoEntreAtaques = 2.5f;
+                break;
+            case TowerType.Ametralladora:
+                daño = 10f;
+                rango = 6f;
+                tiempoEntreAtaques = 0.25f;
+                break;
+            case TowerType.Canon:
+                daño = 45f;
+                rango = 7f;
+                tiempoEntreAtaques = 2f;
+                break;
+            default:
+                daño = 25f;
+                rango = 6f;
+                tiempoEntreAtaques = 1f;
+                break;
+        }
     }
 
     EnemyStats EncontrarObjetivo() {

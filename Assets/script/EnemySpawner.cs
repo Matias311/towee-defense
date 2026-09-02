@@ -365,6 +365,10 @@ public class EnemySpawner : MonoBehaviour {
 
             enemigosCreados++;
             temporizador = tiempoEntreEnemigos;
+            TowerPlacer towerPlacer = FindAnyObjectByType<TowerPlacer>();
+            if (towerPlacer != null) {
+                towerPlacer.ActualizarWave(oleadaActual);
+            }
 
             if (!modoNiveles && !spawnInfinito && enemigosCreados >= cantidadEnemigos) {
                 spawneando = false;
