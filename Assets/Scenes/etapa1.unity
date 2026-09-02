@@ -52470,30 +52470,37 @@ MonoBehaviour:
     prefab: {fileID: 2837839175989084653, guid: 3a01d17cb1841f04baae885eb6d251b4, type: 3}
     baseProbability: 0
     probabilidadActual: 0
+    estadisticas: {fileID: 0}
   - type: 1
     prefab: {fileID: 5573330544155312386, guid: 0d77e0282df901d4ea27b073b0df7f33, type: 3}
     baseProbability: 0
     probabilidadActual: 0
+    estadisticas: {fileID: 0}
   - type: 2
     prefab: {fileID: 0}
     baseProbability: 0
     probabilidadActual: 0
+    estadisticas: {fileID: 0}
   - type: 2
     prefab: {fileID: 786103868222368600, guid: 58eb7d8369789764b915a7db5d69417b, type: 3}
     baseProbability: 0
     probabilidadActual: 0
+    estadisticas: {fileID: 0}
   - type: 4
     prefab: {fileID: 4272713368791650683, guid: da4d647fcb5fa75429714bfdd7b56b42, type: 3}
     baseProbability: 0
     probabilidadActual: 0
+    estadisticas: {fileID: 0}
   - type: 5
     prefab: {fileID: 4823474469279529665, guid: 42f409ab920950946bfccdc1b8c21d67, type: 3}
     baseProbability: 0
     probabilidadActual: 0
+    estadisticas: {fileID: 0}
   - type: 6
     prefab: {fileID: 623972750672646248, guid: 9aee48ac6192b2846b58d5b675143cef, type: 3}
     baseProbability: 0
     probabilidadActual: 0
+    estadisticas: {fileID: 0}
   waypoints:
   - {fileID: 208557345}
   - {fileID: 71765651}
@@ -53889,6 +53896,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TowerPlacer
   towerPrefab: {fileID: 7647291519302094842, guid: 483d26ea401093d4d91715142d23262f, type: 3}
+  torresDisponibles:
+  - {fileID: 7647291519302094842, guid: 483d26ea401093d4d91715142d23262f, type: 3}
+  - {fileID: 7647291519302094842, guid: 483d26ea401093d4d91715142d23262f, type: 3}
+  - {fileID: 7647291519302094842, guid: 483d26ea401093d4d91715142d23262f, type: 3}
+  - {fileID: 7647291519302094842, guid: 483d26ea401093d4d91715142d23262f, type: 3}
+  estadisticasTorre: {fileID: 0}
+  puntosPorTorre: 24
+  puntosActuales: 0
+  torresObtenidas: 0
+  recompensasAntiRepeticion: 2
+  waveActual: 1
   radioValidacion: 1.5
   capasBloqueadas:
     serializedVersion: 2

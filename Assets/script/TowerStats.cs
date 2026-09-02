@@ -35,7 +35,7 @@ public class TowerStats : TowerBaseStats {
         EnemyStats objetivo = EncontrarObjetivo();
         if (objetivo == null) return;
 
-        objetivo.RecibirDanio(daño);
+        objetivo.RecibirDanio(new DamageData(daño));
         temporizadorAtaque = tiempoEntreAtaques;
     }
 

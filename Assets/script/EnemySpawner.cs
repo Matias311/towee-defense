@@ -487,4 +487,9 @@ public class EnemySpawner : MonoBehaviour {
                 oleadaActual,
                 datosSeleccionados
             );
+            Debug.Log(
+                $"[SPAWNER] Stats aplicadas: tipo={tipoSeleccionado}, " +
+                $"vida={estadisticas.vidaMaxima:F1}, daño={estadisticas.daño:F1}, " +
+                $"defensa={estadisticas.defensa:F1}, pasiva={estadisticas.pasiva}"
+            );
     }}
