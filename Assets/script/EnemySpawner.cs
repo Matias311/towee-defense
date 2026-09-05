@@ -18,6 +18,8 @@ public class EnemyProbability {
     public float baseProbability;
     [Tooltip("Probabilidad calculada para la wave actual")]
     public float probabilidadActual;
+    [Tooltip("Estadisticas que usaran los enemigos de este tipo")]
+    public EnemyStatsData estadisticas;
 }
 
 public class EnemySpawner : MonoBehaviour {
@@ -363,6 +365,10 @@ public class EnemySpawner : MonoBehaviour {
 
             enemigosCreados++;
             temporizador = tiempoEntreEnemigos;
+            TowerPlacer towerPlacer = FindAnyObjectByType<TowerPlacer>();
+            if (towerPlacer != null) {
+                towerPlacer.ActualizarWave(oleadaActual);
+            }
 
             if (!modoNiveles && !spawnInfinito && enemigosCreados >= cantidadEnemigos) {
                 spawneando = false;
@@ -461,4 +467,29 @@ public class EnemySpawner : MonoBehaviour {
                     + (ObtenerIncrementoVelocidad() * enemigosCreados);
                 movimiento.speed = Mathf.Min(velocidadCalculada, ObtenerVelocidadMaxima());
             }
+
+            EnemyStats estadisticas = nuevoEnemigo.GetComponent<EnemyStats>();
+            if (estadisticas == null) {
+                estadisticas = nuevoEnemigo.AddComponent<EnemyStats>();
+            }
+
+            EnemyStatsData datosSeleccionados = null;
+            foreach (var prob in enemyProbabilities) {
+                if (prob != null && prob.type == tipoSeleccionado) {
+                    datosSeleccionados = prob.estadisticas;
+                    break;
+                }
+            }
+
+            estadisticas.Configurar(
+                tipoSeleccionado,
+                nivelActual,
+                oleadaActual,
+                datosSeleccionados
+            );
+            Debug.Log(
+                $"[SPAWNER] Stats aplicadas: tipo={tipoSeleccionado}, " +
+                $"vida={estadisticas.vidaMaxima:F1}, daño={estadisticas.daño:F1}, " +
+                $"defensa={estadisticas.defensa:F1}, pasiva={estadisticas.pasiva}"
+            );
     }}
