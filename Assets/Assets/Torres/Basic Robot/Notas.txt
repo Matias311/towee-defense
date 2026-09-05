@@ -1,0 +1,7 @@
+Robot Basico, basicamente el primer robot que el jugador podra crear.
+---
+Relaciones
+
+Posicion: cualquiera
+Rotacion: idealmente mirando a la camara o con script para que mire a la camara siempre
+Escala: X(0.3) Y(0.3) Z(0.3)
