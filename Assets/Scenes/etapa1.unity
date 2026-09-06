@@ -3427,7 +3427,7 @@ RectTransform:
   m_Father: {fileID: 893254497}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 1}
   m_AnchoredPosition: {x: -6, y: -0}
   m_SizeDelta: {x: 11, y: 3}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -55476,7 +55476,7 @@ RectTransform:
   m_Father: {fileID: 240330287}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 1}
   m_AnchoredPosition: {x: -6, y: -0}
   m_SizeDelta: {x: 11, y: 3}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -56202,37 +56202,37 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnemySpawner
   enemyProbabilities:
   - type: 0
-    prefab: {fileID: 2837839175989084653, guid: 3a01d17cb1841f04baae885eb6d251b4, type: 3}
+    prefab: {fileID: 6504764155108374673, guid: 505b6c1985b387d4d921f2b12c4f3bd1, type: 3}
     baseProbability: 0
     probabilidadActual: 0
     estadisticas: {fileID: 0}
   - type: 1
-    prefab: {fileID: 5573330544155312386, guid: 0d77e0282df901d4ea27b073b0df7f33, type: 3}
+    prefab: {fileID: 655450406672987453, guid: bbafcda42fc8c3b4f860d5b8d9b2b2ca, type: 3}
     baseProbability: 0
     probabilidadActual: 0
     estadisticas: {fileID: 0}
   - type: 2
-    prefab: {fileID: 786103868222368600, guid: 58eb7d8369789764b915a7db5d69417b, type: 3}
+    prefab: {fileID: 1543284558968720769, guid: e0ff4707dbd5459499a88023d1dc2b9b, type: 3}
     baseProbability: 0
     probabilidadActual: 0
     estadisticas: {fileID: 0}
   - type: 3
-    prefab: {fileID: 4272713368791650683, guid: da4d647fcb5fa75429714bfdd7b56b42, type: 3}
+    prefab: {fileID: 7455943845879857881, guid: a7c5f2f077ab82a46a628c280f74ac9a, type: 3}
     baseProbability: 0
     probabilidadActual: 0
     estadisticas: {fileID: 0}
   - type: 4
-    prefab: {fileID: 4823474469279529665, guid: 42f409ab920950946bfccdc1b8c21d67, type: 3}
+    prefab: {fileID: 2673051912191061337, guid: 797e7438d8fa57f448847c8879250d17, type: 3}
     baseProbability: 0
     probabilidadActual: 0
     estadisticas: {fileID: 0}
   - type: 5
-    prefab: {fileID: 623972750672646248, guid: 9aee48ac6192b2846b58d5b675143cef, type: 3}
+    prefab: {fileID: 7321250219957679058, guid: adc1eaf95d913ac4eb8036a4112a4375, type: 3}
     baseProbability: 0
     probabilidadActual: 0
     estadisticas: {fileID: 0}
   - type: 6
-    prefab: {fileID: 623972750672646248, guid: 9aee48ac6192b2846b58d5b675143cef, type: 3}
+    prefab: {fileID: 8230559991850308285, guid: 856b9e353a141c444a8a4771caa80d0d, type: 3}
     baseProbability: 0
     probabilidadActual: 0
     estadisticas: {fileID: 0}
@@ -56654,7 +56654,7 @@ RectTransform:
   m_Father: {fileID: 1581137825}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 10, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -57369,7 +57369,7 @@ RectTransform:
   m_Father: {fileID: 2116055479}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 1}
   m_AnchoredPosition: {x: -5.0199738, y: 0}
   m_SizeDelta: {x: 11, y: 3}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -62653,7 +62653,7 @@ RectTransform:
   m_Father: {fileID: 1024541888}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 10, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -62728,7 +62728,7 @@ RectTransform:
   m_Father: {fileID: 1316927081}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 10, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -62846,7 +62846,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &2090554380
 RectTransform:
   m_ObjectHideFlags: 0
