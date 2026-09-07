@@ -71,8 +71,6 @@ public class TowerPlacer : MonoBehaviour
 
         void CrearVariantesAutomaticasSiHaceFalta()
         {
-            if (torresDisponibles.Count < 4) return;
-
             bool tieneTipoEspecializado = false;
             foreach (GameObject torre in torresDisponibles)
             {
@@ -88,7 +86,16 @@ public class TowerPlacer : MonoBehaviour
 
             if (tieneTipoEspecializado) return;
 
-            GameObject plantilla = torresDisponibles[0];
+            GameObject plantilla = null;
+            foreach (GameObject torre in torresDisponibles)
+            {
+                if (torre != null)
+                {
+                    plantilla = torre;
+                    break;
+                }
+            }
+
             if (plantilla == null) return;
 
             TowerType[] tipos = {
@@ -308,7 +315,9 @@ public class TowerPlacer : MonoBehaviour
                 IntentarColocarTorre();
             }
 
-            if (Input.GetMouseButtonDown(1) || Input.GetKeyDown(KeyCode.Escape))
+            // Escape lo gestiona PauseMenu; cancelar con click derecho evita que
+            // abrir el menu destruya el preview de la torre seleccionada.
+            if (Input.GetMouseButtonDown(1))
             {
                 CancelarColocacion();
             }
@@ -325,6 +334,7 @@ public class TowerPlacer : MonoBehaviour
         previewTorre = Instantiate(torreSeleccionada);
         previewTorre.SetActive(true);
         PrepararVisualizadorRango(previewTorre);
+        previewTorre.GetComponent<TowerRangeVisualizer>().SetVisible(true);
         // Desactivar collider del preview para que no interfiera con el raycast
         Collider col = previewTorre.GetComponent<Collider>();
         if (col != null) col.enabled = false;
@@ -350,11 +360,35 @@ public class TowerPlacer : MonoBehaviour
         Collider[] colisiones = Physics.OverlapSphere(posicion, radioValidacion, capasBloqueadas);
         if (colisiones.Length > 0) return false;
 
+        if (HayTorreEnLaPosicion(posicion)) {
+            return false;
+        }
+
         if (bloquearCaminoPorWaypoints && EstaSobreElCamino(posicion)) {
             return false;
         }
 
         return true;
+    }
+
+    bool HayTorreEnLaPosicion(Vector3 posicion)
+    {
+        Collider[] colisiones = Physics.OverlapSphere(
+            posicion,
+            radioValidacion,
+            ~0,
+            QueryTriggerInteraction.Ignore
+        );
+
+        foreach (Collider colision in colisiones)
+        {
+            if (colision.GetComponentInParent<TowerStats>() != null)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     bool EstaSobreElCamino(Vector3 posicion)
@@ -429,6 +463,11 @@ public class TowerPlacer : MonoBehaviour
             torre.AddComponent<TowerAttackController>();
         }
         PrepararVisualizadorRango(torre);
+        torre.GetComponent<TowerRangeVisualizer>().SetVisible(false);
+        if (torre.GetComponent<TowerHoverInfo>() == null)
+        {
+            torre.AddComponent<TowerHoverInfo>();
+        }
         ConfigurarTipoAutomatico(torre, estadisticas);
         estadisticas.Configurar(estadisticasTorre);
         inventarioTorres.RemoveAt(0);
@@ -478,6 +517,8 @@ public class TowerPlacer : MonoBehaviour
         {
             Destroy(previewTorre);
         }
+        previewTorre = null;
         colocando = false;
+        torreSeleccionada = null;
     }
 }
