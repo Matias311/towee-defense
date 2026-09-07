@@ -2,25 +2,31 @@ using UnityEngine;
 
 [RequireComponent(typeof(TowerStats))]
 public class TowerRangeVisualizer : MonoBehaviour {
-    [SerializeField] private Color colorRango = new Color(0f, 1f, 0f, 1f);
-    [SerializeField] private Color colorArea = new Color(0f, 1f, 0f, 0.08f);
+    [SerializeField] private Color colorRango = new Color(0.55f, 0.9f, 0.68f, 0.72f);
+    [SerializeField] private Color colorHalo = new Color(0.55f, 0.9f, 0.68f, 0.08f);
+    [SerializeField] private Color colorArea = new Color(0.55f, 0.9f, 0.68f, 0.012f);
     [SerializeField] private int segmentos = 64;
 
     private TowerStats estadisticas;
     private LineRenderer linea;
+    private LineRenderer halo;
     private MeshRenderer area;
 
     void Awake() {
         estadisticas = GetComponent<TowerStats>();
         CrearLinea();
         CrearArea();
+        SetVisible(false);
     }
 
     void LateUpdate() {
-        if (linea == null) return;
+        if (linea == null || !linea.enabled) return;
         linea.startColor = colorRango;
         linea.endColor = colorRango;
-        linea.widthMultiplier = 0.1f;
+        linea.widthMultiplier = 0.022f;
+        halo.startColor = colorHalo;
+        halo.endColor = colorHalo;
+        halo.widthMultiplier = 0.07f;
         ActualizarLinea();
         if (area != null) {
             area.transform.localScale = new Vector3(
@@ -38,15 +44,37 @@ public class TowerRangeVisualizer : MonoBehaviour {
         linea.useWorldSpace = false;
         linea.loop = true;
         linea.positionCount = Mathf.Max(16, segmentos);
-        linea.startWidth = 0.1f;
-        linea.endWidth = 0.1f;
+        linea.startWidth = 0.022f;
+        linea.endWidth = 0.022f;
         linea.alignment = LineAlignment.View;
         linea.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
         linea.receiveShadows = false;
         linea.startColor = colorRango;
         linea.endColor = colorRango;
-        linea.material = CrearMaterial();
+        linea.material = CrearMaterial(colorRango);
+
+        GameObject objetoHalo = new GameObject("HaloRango");
+        objetoHalo.transform.SetParent(transform, false);
+        halo = objetoHalo.AddComponent<LineRenderer>();
+        halo.useWorldSpace = false;
+        halo.loop = true;
+        halo.positionCount = Mathf.Max(16, segmentos);
+        halo.startWidth = 0.07f;
+        halo.endWidth = 0.07f;
+        halo.alignment = LineAlignment.View;
+        halo.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+        halo.receiveShadows = false;
+        halo.startColor = colorHalo;
+        halo.endColor = colorHalo;
+        halo.material = CrearMaterial(colorHalo);
         ActualizarLinea();
+    }
+
+    public void SetVisible(bool visible)
+    {
+        if (linea != null) linea.enabled = visible;
+        if (halo != null) halo.enabled = visible;
+        if (area != null) area.enabled = visible;
     }
 
     void CrearArea() {
@@ -68,26 +96,23 @@ public class TowerRangeVisualizer : MonoBehaviour {
 
         int cantidadSegmentos = Mathf.Max(16, segmentos);
         linea.positionCount = cantidadSegmentos;
+        if (halo != null) halo.positionCount = cantidadSegmentos;
         float radio = Mathf.Max(0.01f, estadisticas.rango);
 
         for (int i = 0; i < cantidadSegmentos; i++) {
             float angulo = i * Mathf.PI * 2f / cantidadSegmentos;
-            linea.SetPosition(i, new Vector3(
+            Vector3 posicion = new Vector3(
                 Mathf.Cos(angulo) * radio,
                 0.03f,
                 Mathf.Sin(angulo) * radio
-            ));
+            );
+            linea.SetPosition(i, posicion);
+            if (halo != null) halo.SetPosition(i, posicion);
         }
     }
 
     Material CrearMaterial() {
-        Shader shader = Shader.Find("Universal Render Pipeline/Unlit");
-        if (shader == null) shader = Shader.Find("Unlit/Color");
-        if (shader == null) shader = Shader.Find("Sprites/Default");
-
-        Material material = new Material(shader);
-        material.color = colorRango;
-        return material;
+        return CrearMaterial(colorRango);
     }
 
     Material CrearMaterial(Color color) {
