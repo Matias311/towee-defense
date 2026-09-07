@@ -11,9 +11,11 @@ public class TowerRangeVisualizer : MonoBehaviour {
     private LineRenderer linea;
     private LineRenderer halo;
     private MeshRenderer area;
+    private Vector3 centroVisualLocal;
 
     void Awake() {
         estadisticas = GetComponent<TowerStats>();
+        centroVisualLocal = CalcularCentroVisualLocal();
         CrearLinea();
         CrearArea();
         SetVisible(false);
@@ -81,7 +83,7 @@ public class TowerRangeVisualizer : MonoBehaviour {
         GameObject objetoArea = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
         objetoArea.name = "AreaRango";
         objetoArea.transform.SetParent(transform, false);
-        objetoArea.transform.localPosition = new Vector3(0f, 0.015f, 0f);
+        objetoArea.transform.localPosition = centroVisualLocal + new Vector3(0f, 0.015f, 0f);
         objetoArea.transform.localScale = new Vector3(1f, 0.01f, 1f);
 
         Collider colision = objetoArea.GetComponent<Collider>();
@@ -89,6 +91,28 @@ public class TowerRangeVisualizer : MonoBehaviour {
 
         area = objetoArea.GetComponent<MeshRenderer>();
         area.material = CrearMaterial(colorArea);
+    }
+
+    Vector3 CalcularCentroVisualLocal() {
+        Renderer[] renderizadores = GetComponentsInChildren<Renderer>(true);
+        if (renderizadores.Length == 0) return Vector3.zero;
+
+        Bounds limites = renderizadores[0].bounds;
+        for (int i = 1; i < renderizadores.Length; i++) {
+            limites.Encapsulate(renderizadores[i].bounds);
+        }
+
+        Vector3 centro = transform.InverseTransformPoint(limites.center);
+        centro.y = 0f;
+        return centro;
+    }
+
+    public void ColocarCentroVisualEn(Vector3 posicion) {
+        transform.position = posicion - transform.TransformVector(centroVisualLocal);
+    }
+
+    public Vector3 ObtenerCentroVisualWorld() {
+        return transform.TransformPoint(centroVisualLocal);
     }
 
     void ActualizarLinea() {
@@ -102,9 +126,9 @@ public class TowerRangeVisualizer : MonoBehaviour {
         for (int i = 0; i < cantidadSegmentos; i++) {
             float angulo = i * Mathf.PI * 2f / cantidadSegmentos;
             Vector3 posicion = new Vector3(
-                Mathf.Cos(angulo) * radio,
-                0.03f,
-                Mathf.Sin(angulo) * radio
+                centroVisualLocal.x + Mathf.Cos(angulo) * radio,
+                centroVisualLocal.y + 0.03f,
+                centroVisualLocal.z + Mathf.Sin(angulo) * radio
             );
             linea.SetPosition(i, posicion);
             if (halo != null) halo.SetPosition(i, posicion);

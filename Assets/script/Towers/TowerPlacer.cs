@@ -1,12 +1,17 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+[System.Serializable]
+public class TowerPrefabEntry
+{
+    public TowerType tipo = TowerType.Basica;
+    public GameObject prefab;
+}
+
 public class TowerPlacer : MonoBehaviour
 {
-    [Header("Prefab de la torre")]
-    public GameObject towerPrefab;
     [Tooltip("Tipos de torres posibles como recompensa")]
-    public List<GameObject> torresDisponibles = new List<GameObject>();
+    public List<TowerPrefabEntry> torresDisponibles = new List<TowerPrefabEntry>();
     [Tooltip("Estadisticas que usaran automaticamente todas las torres colocadas")]
     public TowerStatsData estadisticasTorre;
 
@@ -35,6 +40,8 @@ public class TowerPlacer : MonoBehaviour
     public bool bloquearCaminoPorWaypoints = true;
     [Tooltip("Ancho de seguridad del camino alrededor de los segmentos entre waypoints")]
     public float radioCamino = 1.5f;
+    [Tooltip("Giro horizontal adicional del modelo si su frente no apunta hacia Z positivo")]
+    public float offsetRotacionTorre;
 
     [Header("Referencias")]
     public Camera camaraPrincipal;
@@ -53,84 +60,15 @@ public class TowerPlacer : MonoBehaviour
     private readonly List<GameObject> inventarioTorres = new List<GameObject>();
     private readonly List<TowerType> tiposObtenidos = new List<TowerType>();
     private readonly List<TowerType> tiposRecientes = new List<TowerType>();
-    private readonly List<GameObject> variantesAutomaticas = new List<GameObject>();
+    private readonly Dictionary<GameObject, TowerType> tiposPorPrefab = new Dictionary<GameObject, TowerType>();
 
     void Start()
     {
-        if (torresDisponibles.Count == 0 && towerPrefab != null)
-        {
-            torresDisponibles.Add(towerPrefab);
-        }
-
-        CrearVariantesAutomaticasSiHaceFalta();
+        ConstruirMapaDeTipos();
 
         for (int i = 0; i < torresIniciales; i++)
         {
             ObtenerTorreAleatoria();
-        }
-
-        void CrearVariantesAutomaticasSiHaceFalta()
-        {
-            bool tieneTipoEspecializado = false;
-            foreach (GameObject torre in torresDisponibles)
-            {
-                if (torre == null) continue;
-                if (torre.GetComponent<TorreFrancotiradorStats>() != null
-                    || torre.GetComponent<TorreAmetralladoraStats>() != null
-                    || torre.GetComponent<TorreCanonStats>() != null)
-                {
-                    tieneTipoEspecializado = true;
-                    break;
-                }
-            }
-
-            if (tieneTipoEspecializado) return;
-
-            GameObject plantilla = null;
-            foreach (GameObject torre in torresDisponibles)
-            {
-                if (torre != null)
-                {
-                    plantilla = torre;
-                    break;
-                }
-            }
-
-            if (plantilla == null) return;
-
-            TowerType[] tipos = {
-                TowerType.Basica,
-                TowerType.Francotirador,
-                TowerType.Ametralladora,
-                TowerType.Canon
-            };
-            List<GameObject> variantes = new List<GameObject>();
-
-            foreach (TowerType tipo in tipos)
-            {
-                GameObject variante = Instantiate(plantilla);
-                variante.name = $"{plantilla.name}_{tipo}";
-                variante.SetActive(false);
-
-                switch (tipo)
-                {
-                    case TowerType.Francotirador:
-                        variante.AddComponent<TorreFrancotiradorStats>();
-                        break;
-                    case TowerType.Ametralladora:
-                        variante.AddComponent<TorreAmetralladoraStats>();
-                        break;
-                    case TowerType.Canon:
-                        variante.AddComponent<TorreCanonStats>();
-                        break;
-                }
-
-                variantes.Add(variante);
-                variantesAutomaticas.Add(variante);
-            }
-
-            torresDisponibles = variantes;
-            Debug.Log("[TOWER] Se generaron variantes automaticas: Basica, Francotirador, Ametralladora y Canon.");
         }
 
         if (camaraPrincipal == null)
@@ -141,6 +79,19 @@ public class TowerPlacer : MonoBehaviour
         if (activarAlIniciar)
         {
             EmpezarColocacion();
+        }
+    }
+
+    void ConstruirMapaDeTipos()
+    {
+        tiposPorPrefab.Clear();
+        foreach (TowerPrefabEntry entrada in torresDisponibles)
+        {
+            if (entrada == null || entrada.prefab == null) continue;
+            if (!tiposPorPrefab.ContainsKey(entrada.prefab))
+            {
+                tiposPorPrefab.Add(entrada.prefab, entrada.tipo);
+            }
         }
     }
 
@@ -163,7 +114,7 @@ public class TowerPlacer : MonoBehaviour
 
     void ObtenerTorreAleatoria()
     {
-        if (torresDisponibles.Count == 0)
+        if (tiposPorPrefab.Count == 0)
         {
             Debug.LogWarning("[TOWER] No hay torres disponibles para entregar.");
             return;
@@ -185,7 +136,8 @@ public class TowerPlacer : MonoBehaviour
 
         torresObtenidas++;
         Debug.Log($"[TOWER] Torre obtenida: {torre.name}. Total: {torresObtenidas}. En inventario: {torresEnInventario}");
-        if (!colocando) {
+        if (!colocando)
+        {
             EmpezarColocacion();
         }
     }
@@ -193,25 +145,23 @@ public class TowerPlacer : MonoBehaviour
     List<GameObject> ObtenerCandidatas()
     {
         List<TowerType> faltantes = new List<TowerType>();
-        foreach (GameObject torre in torresDisponibles)
+        foreach (TowerPrefabEntry entrada in torresDisponibles)
         {
-            if (torre == null) continue;
-
-            TowerType tipo = ObtenerTipoTorre(torre);
-            if (!tiposObtenidos.Contains(tipo) && !faltantes.Contains(tipo))
+            if (entrada == null || entrada.prefab == null) continue;
+            if (!tiposObtenidos.Contains(entrada.tipo) && !faltantes.Contains(entrada.tipo))
             {
-                faltantes.Add(tipo);
+                faltantes.Add(entrada.tipo);
             }
         }
 
         if (faltantes.Count > 0 && torresObtenidas % 3 == 2)
         {
             List<GameObject> garantizadas = new List<GameObject>();
-            foreach (GameObject torre in torresDisponibles)
+            foreach (TowerPrefabEntry entrada in torresDisponibles)
             {
-                if (torre != null && faltantes.Contains(ObtenerTipoTorre(torre)))
+                if (entrada != null && entrada.prefab != null && faltantes.Contains(entrada.tipo))
                 {
-                    garantizadas.Add(torre);
+                    garantizadas.Add(entrada.prefab);
                 }
             }
             return garantizadas;
@@ -220,19 +170,26 @@ public class TowerPlacer : MonoBehaviour
         if (torresObtenidas == 0)
         {
             List<GameObject> iniciales = new List<GameObject>();
-            foreach (GameObject torre in torresDisponibles)
+            foreach (TowerPrefabEntry entrada in torresDisponibles)
             {
-                TowerType tipo = ObtenerTipoTorre(torre);
-                if (torre != null && (tipo == TowerType.Basica || tipo == TowerType.Ametralladora))
+                if (entrada != null && entrada.prefab != null
+                    && (entrada.tipo == TowerType.Basica || entrada.tipo == TowerType.Ametralladora))
                 {
-                    iniciales.Add(torre);
+                    iniciales.Add(entrada.prefab);
                 }
             }
-
             if (iniciales.Count > 0) return iniciales;
         }
 
-        return torresDisponibles;
+        List<GameObject> disponibles = new List<GameObject>();
+        foreach (TowerPrefabEntry entrada in torresDisponibles)
+        {
+            if (entrada != null && entrada.prefab != null)
+            {
+                disponibles.Add(entrada.prefab);
+            }
+        }
+        return disponibles;
     }
 
     GameObject SeleccionarTorrePonderada(List<GameObject> candidatas)
@@ -258,7 +215,6 @@ public class TowerPlacer : MonoBehaviour
         foreach (GameObject torre in candidatas)
         {
             if (torre == null || tiposRecientes.Contains(ObtenerTipoTorre(torre))) continue;
-
             valor -= ObtenerPesoTorre(torre);
             if (valor <= 0f) return torre;
         }
@@ -292,6 +248,16 @@ public class TowerPlacer : MonoBehaviour
 
     TowerType ObtenerTipoTorre(GameObject torre)
     {
+        if (torre != null && tiposPorPrefab.TryGetValue(torre, out TowerType tipoConfigurado))
+        {
+            return tipoConfigurado;
+        }
+
+        TowerStats stats = torre != null ? torre.GetComponent<TowerStats>() : null;
+        if (stats != null) return stats.tipo;
+
+        if (torre == null) return TowerType.Basica;
+
         TorreFrancotiradorStats francotirador = torre.GetComponent<TorreFrancotiradorStats>();
         if (francotirador != null) return TowerType.Francotirador;
 
@@ -347,7 +313,9 @@ public class TowerPlacer : MonoBehaviour
         Ray ray = camaraPrincipal.ScreenPointToRay(Input.mousePosition);
         if (Physics.Raycast(ray, out RaycastHit hit, 1000f))
         {
-            previewTorre.transform.position = hit.point;
+            TowerRangeVisualizer visualizador = previewTorre.GetComponent<TowerRangeVisualizer>();
+            previewTorre.transform.rotation = ObtenerRotacionHaciaCamino(hit.point);
+            visualizador.ColocarCentroVisualEn(hit.point);
 
             bool valido = EsPosicionValida(hit.point);
             PintarPreview(valido);
@@ -440,7 +408,9 @@ public class TowerPlacer : MonoBehaviour
 
     void IntentarColocarTorre()
     {
-        if (!EsPosicionValida(previewTorre.transform.position))
+        TowerRangeVisualizer visualizador = previewTorre.GetComponent<TowerRangeVisualizer>();
+        Vector3 centroTorre = visualizador.ObtenerCentroVisualWorld();
+        if (!EsPosicionValida(centroTorre))
         {
             // No se puede colocar aca, no hacemos nada (el preview sigue activo)
             return;
@@ -450,7 +420,7 @@ public class TowerPlacer : MonoBehaviour
         GameObject torre = Instantiate(
             torreSeleccionada,
             previewTorre.transform.position,
-            Quaternion.identity
+            previewTorre.transform.rotation
         );
         torre.SetActive(true);
         TowerStats estadisticas = torre.GetComponent<TowerStats>();
@@ -468,8 +438,8 @@ public class TowerPlacer : MonoBehaviour
         {
             torre.AddComponent<TowerHoverInfo>();
         }
-        ConfigurarTipoAutomatico(torre, estadisticas);
         estadisticas.Configurar(estadisticasTorre);
+        ConfigurarTipoAutomatico(torre, estadisticas);
         inventarioTorres.RemoveAt(0);
         torresEnInventario = inventarioTorres.Count;
 
@@ -493,22 +463,54 @@ public class TowerPlacer : MonoBehaviour
 
     void ConfigurarTipoAutomatico(GameObject torre, TowerStats estadisticas)
     {
-        if (torre.GetComponent<TorreFrancotiradorStats>() != null)
+        estadisticas.tipo = ObtenerTipoTorre(torreSeleccionada);
+    }
+
+    Quaternion ObtenerRotacionHaciaCamino(Vector3 posicionTorre)
+    {
+        EnemySpawner spawner = FindAnyObjectByType<EnemySpawner>();
+        if (spawner == null || spawner.waypoints == null || spawner.waypoints.Count < 2)
         {
-            estadisticas.tipo = TowerType.Francotirador;
+            return Quaternion.Euler(0f, offsetRotacionTorre, 0f);
         }
-        else if (torre.GetComponent<TorreAmetralladoraStats>() != null)
+
+        Vector3 puntoObjetivo = spawner.waypoints[0] != null
+            ? spawner.waypoints[0].position
+            : posicionTorre + Vector3.forward;
+        float distanciaMinima = float.MaxValue;
+
+        for (int i = 0; i < spawner.waypoints.Count - 1; i++)
         {
-            estadisticas.tipo = TowerType.Ametralladora;
+            Transform inicio = spawner.waypoints[i];
+            Transform final = spawner.waypoints[i + 1];
+            if (inicio == null || final == null) continue;
+
+            Vector3 inicioPlano = new Vector3(inicio.position.x, posicionTorre.y, inicio.position.z);
+            Vector3 finalPlano = new Vector3(final.position.x, posicionTorre.y, final.position.z);
+            Vector3 segmento = finalPlano - inicioPlano;
+            float longitudCuadrada = segmento.sqrMagnitude;
+            float progreso = longitudCuadrada > 0f
+                ? Mathf.Clamp01(Vector3.Dot(posicionTorre - inicioPlano, segmento) / longitudCuadrada)
+                : 0f;
+            Vector3 puntoCercano = inicioPlano + segmento * progreso;
+            float distancia = (posicionTorre - puntoCercano).sqrMagnitude;
+
+            if (distancia < distanciaMinima)
+            {
+                distanciaMinima = distancia;
+                puntoObjetivo = puntoCercano;
+            }
         }
-        else if (torre.GetComponent<TorreCanonStats>() != null)
+
+        Vector3 direccion = puntoObjetivo - posicionTorre;
+        direccion.y = 0f;
+        if (direccion.sqrMagnitude < 0.0001f)
         {
-            estadisticas.tipo = TowerType.Canon;
+            direccion = Vector3.forward;
         }
-        else if (torre.GetComponent<TorreBasicaStats>() != null)
-        {
-            estadisticas.tipo = TowerType.Basica;
-        }
+
+        return Quaternion.LookRotation(direccion.normalized, Vector3.up)
+            * Quaternion.Euler(0f, offsetRotacionTorre, 0f);
     }
 
     void CancelarColocacion()

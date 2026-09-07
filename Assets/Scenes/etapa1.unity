@@ -62646,8 +62646,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6b16a91297834fb49b2b7a942bb69a0b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TowerPlacer
-  towerPrefab: {fileID: 7647291519302094842, guid: 483d26ea401093d4d91715142d23262f, type: 3}
-  torresDisponibles: []
+  torresDisponibles:
+  - tipo: 0
+    prefab: {fileID: 7647291519302094842, guid: 483d26ea401093d4d91715142d23262f, type: 3}
   estadisticasTorre: {fileID: 0}
   puntosPorTorre: 24
   torresIniciales: 3
