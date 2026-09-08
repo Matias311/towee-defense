@@ -32,4 +32,7 @@ public class TowerStatsData : ScriptableObject {
     public TowerTargetPriority prioridadObjetivo = TowerTargetPriority.MasCercano;
     public float radioArea = 2.5f;
     public int cantidadObjetivos = 1;
+    public bool usarProyectil = true;
+    public GameObject prefabProyectil;
+    public float velocidadProyectil = 14f;
 }

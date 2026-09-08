@@ -18,9 +18,17 @@ public class TowerAttackController : MonoBehaviour {
         if (objetivo == null) return;
 
         if (estadisticas.tipoAtaque == TowerAttackType.Area) {
-            AtacarEnArea(objetivo.transform.position);
+            if (estadisticas.usarProyectil) {
+                LanzarProyectil(objetivo);
+            } else {
+                AtacarEnArea(objetivo.transform.position);
+            }
         } else {
-            AtacarObjetivo(objetivo);
+            if (estadisticas.usarProyectil) {
+                LanzarProyectil(objetivo);
+            } else {
+                AtacarObjetivo(objetivo);
+            }
         }
 
         temporizadorAtaque = Mathf.Max(0.05f, estadisticas.tiempoEntreAtaques);
@@ -46,6 +54,7 @@ public class TowerAttackController : MonoBehaviour {
             if (enemigo != null && enemigo.vidaActual > 0f) {
                 objetivos.Add(enemigo);
             }
+
         }
 
         int afectados = 0;
@@ -56,21 +65,69 @@ public class TowerAttackController : MonoBehaviour {
         }
     }
 
-    EnemyStats EncontrarObjetivo() {
-        Collider[] colisiones = Physics.OverlapSphere(
-            transform.position,
-            estadisticas.rango
+    void LanzarProyectil(EnemyStats objetivo) {
+        GameObject objetoProyectil = estadisticas.prefabProyectil != null
+            ? Instantiate(estadisticas.prefabProyectil)
+            : CrearProyectilVisual();
+        objetoProyectil.transform.position = transform.position;
+
+        TowerProjectile proyectil = objetoProyectil.GetComponent<TowerProjectile>();
+        if (proyectil == null) {
+            proyectil = objetoProyectil.AddComponent<TowerProjectile>();
+        }
+
+        proyectil.Inicializar(
+            objetivo,
+            new DamageData(
+                estadisticas.daño,
+                DamageType.Fisico,
+                estadisticas.penetracion
+            ),
+            estadisticas.tipoAtaque == TowerAttackType.Area
+                ? estadisticas.radioArea
+                : 0f,
+            estadisticas.cantidadObjetivos,
+            estadisticas.velocidadProyectil
         );
+    }
+
+    GameObject CrearProyectilVisual() {
+        GameObject proyectil = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+        proyectil.name = "ProyectilTorre";
+        proyectil.transform.position = transform.position;
+        proyectil.transform.localScale = Vector3.one * 0.18f;
+
+        Collider colision = proyectil.GetComponent<Collider>();
+        if (colision != null) {
+            Destroy(colision);
+        }
+
+        Renderer renderizador = proyectil.GetComponent<Renderer>();
+        renderizador.material = CrearMaterialProyectil();
+        return proyectil;
+    }
+
+    Material CrearMaterialProyectil() {
+        Shader shader = Shader.Find("Universal Render Pipeline/Unlit");
+        if (shader == null) shader = Shader.Find("Unlit/Color");
+        Material material = new Material(shader);
+        material.color = new Color(1f, 0.72f, 0.15f, 1f);
+        return material;
+    }
+
+    EnemyStats EncontrarObjetivo() {
         EnemyStats objetivo = null;
         float mejorValor = estadisticas.prioridadObjetivo == TowerTargetPriority.MasCercano
             ? float.MaxValue
             : float.MinValue;
 
-        foreach (Collider colision in colisiones) {
-            EnemyStats enemigo = colision.GetComponentInParent<EnemyStats>();
+        EnemyStats[] enemigos = FindObjectsByType<EnemyStats>(FindObjectsSortMode.None);
+        foreach (EnemyStats enemigo in enemigos) {
             if (enemigo == null || enemigo.vidaActual <= 0f) continue;
 
             float distancia = (enemigo.transform.position - transform.position).sqrMagnitude;
+            if (distancia > estadisticas.rango * estadisticas.rango) continue;
+
             float valor = estadisticas.prioridadObjetivo == TowerTargetPriority.MasVida
                 ? enemigo.vidaActual
                 : distancia;

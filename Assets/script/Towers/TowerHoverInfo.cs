@@ -33,6 +33,7 @@ public class TowerHoverInfo : MonoBehaviour
         estadisticas = GetComponent<TowerStats>();
         visualizadorRango = GetComponent<TowerRangeVisualizer>();
         camara = Camera.main;
+        PrepararColliderHover();
     }
 
     void OnMouseEnter()
@@ -67,6 +68,47 @@ public class TowerHoverInfo : MonoBehaviour
     void OnDestroy()
     {
         OcultarEstadisticas();
+    }
+
+    void PrepararColliderHover()
+    {
+        if (GetComponent<Collider>() != null) return;
+
+        Renderer[] renderizadores = GetComponentsInChildren<Renderer>(true);
+        Bounds limites = new Bounds(transform.position, Vector3.zero);
+        bool hayRenderizador = false;
+
+        foreach (Renderer renderizador in renderizadores)
+        {
+            if (renderizador.transform == transform
+                || renderizador.name == "Rango"
+                || renderizador.name == "HaloRango"
+                || renderizador.name == "AreaRango")
+            {
+                continue;
+            }
+
+            if (!hayRenderizador)
+            {
+                limites = renderizador.bounds;
+                hayRenderizador = true;
+            }
+            else
+            {
+                limites.Encapsulate(renderizador.bounds);
+            }
+        }
+
+        if (!hayRenderizador) return;
+
+        BoxCollider colliderHover = gameObject.AddComponent<BoxCollider>();
+        colliderHover.center = transform.InverseTransformPoint(limites.center);
+        Vector3 tamaño = transform.InverseTransformVector(limites.size);
+        colliderHover.size = new Vector3(
+            Mathf.Abs(tamaño.x),
+            Mathf.Abs(tamaño.y),
+            Mathf.Abs(tamaño.z)
+        );
     }
 
     void CrearPanel()
@@ -106,7 +148,7 @@ public class TowerHoverInfo : MonoBehaviour
         rectTexto.offsetMax = new Vector2(-12f, -9f);
 
         RectTransform rectPanel = panel.GetComponent<RectTransform>();
-        rectPanel.sizeDelta = new Vector2(215f, 154f);
+        rectPanel.sizeDelta = new Vector2(235f, 190f);
     }
 
     void ActualizarPanel()
@@ -120,17 +162,14 @@ public class TowerHoverInfo : MonoBehaviour
             $"Defensa: {estadisticas.defensa:0.0}\n" +
             $"Penetracion: {estadisticas.penetracion:0.0}\n" +
             $"Ataque cada: {estadisticas.tiempoEntreAtaques:0.00}s\n" +
-            $"Objetivos: {estadisticas.cantidadObjetivos}";
+            $"Tipo de ataque: {estadisticas.tipoAtaque}\n" +
+            $"Objetivos: {estadisticas.cantidadObjetivos}\n" +
+            $"Prioridad: {estadisticas.prioridadObjetivo}\n" +
+            $"Proyectil: {(estadisticas.usarProyectil ? "SI" : "NO")}";
     }
 
     string ObtenerNombreTipo()
     {
-        switch (estadisticas.tipo)
-        {
-            case TowerType.Francotirador: return "FRANCOTIRADOR";
-            case TowerType.Ametralladora: return "AMETRALLADORA";
-            case TowerType.Canon: return "CANON";
-            default: return "TORRE BASICA";
-        }
+        return estadisticas.tipo.ToString().ToUpperInvariant();
     }
 }
