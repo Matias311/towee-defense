@@ -6,6 +6,8 @@ public class TowerPrefabEntry
 {
     public TowerType tipo = TowerType.Basica;
     public GameObject prefab;
+    [Tooltip("Estadisticas propias de esta torre. Si queda vacio, usa las estadisticas globales.")]
+    public TowerStatsData estadisticas;
 }
 
 public class TowerPlacer : MonoBehaviour
@@ -61,6 +63,8 @@ public class TowerPlacer : MonoBehaviour
     private readonly List<TowerType> tiposObtenidos = new List<TowerType>();
     private readonly List<TowerType> tiposRecientes = new List<TowerType>();
     private readonly Dictionary<GameObject, TowerType> tiposPorPrefab = new Dictionary<GameObject, TowerType>();
+    private readonly Dictionary<GameObject, TowerStatsData> estadisticasPorPrefab =
+        new Dictionary<GameObject, TowerStatsData>();
 
     void Start()
     {
@@ -85,12 +89,14 @@ public class TowerPlacer : MonoBehaviour
     void ConstruirMapaDeTipos()
     {
         tiposPorPrefab.Clear();
+        estadisticasPorPrefab.Clear();
         foreach (TowerPrefabEntry entrada in torresDisponibles)
         {
             if (entrada == null || entrada.prefab == null) continue;
             if (!tiposPorPrefab.ContainsKey(entrada.prefab))
             {
                 tiposPorPrefab.Add(entrada.prefab, entrada.tipo);
+                estadisticasPorPrefab.Add(entrada.prefab, entrada.estadisticas);
             }
         }
     }
@@ -299,6 +305,13 @@ public class TowerPlacer : MonoBehaviour
         colocando = true;
         previewTorre = Instantiate(torreSeleccionada);
         previewTorre.SetActive(true);
+        TowerStats estadisticasPreview = previewTorre.GetComponent<TowerStats>();
+        if (estadisticasPreview == null)
+        {
+            estadisticasPreview = previewTorre.AddComponent<TowerStats>();
+        }
+        estadisticasPreview.Configurar(ObtenerEstadisticasTorre(torreSeleccionada));
+        ConfigurarTipoAutomatico(previewTorre, estadisticasPreview);
         PrepararVisualizadorRango(previewTorre);
         previewTorre.GetComponent<TowerRangeVisualizer>().SetVisible(true);
         // Desactivar collider del preview para que no interfiera con el raycast
@@ -438,7 +451,7 @@ public class TowerPlacer : MonoBehaviour
         {
             torre.AddComponent<TowerHoverInfo>();
         }
-        estadisticas.Configurar(estadisticasTorre);
+        estadisticas.Configurar(ObtenerEstadisticasTorre(torreSeleccionada));
         ConfigurarTipoAutomatico(torre, estadisticas);
         inventarioTorres.RemoveAt(0);
         torresEnInventario = inventarioTorres.Count;
@@ -464,6 +477,18 @@ public class TowerPlacer : MonoBehaviour
     void ConfigurarTipoAutomatico(GameObject torre, TowerStats estadisticas)
     {
         estadisticas.tipo = ObtenerTipoTorre(torreSeleccionada);
+    }
+
+    TowerStatsData ObtenerEstadisticasTorre(GameObject torre)
+    {
+        if (torre != null
+            && estadisticasPorPrefab.TryGetValue(torre, out TowerStatsData estadisticasPropias)
+            && estadisticasPropias != null)
+        {
+            return estadisticasPropias;
+        }
+
+        return estadisticasTorre;
     }
 
     Quaternion ObtenerRotacionHaciaCamino(Vector3 posicionTorre)

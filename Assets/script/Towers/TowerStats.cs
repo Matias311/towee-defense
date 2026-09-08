@@ -8,6 +8,9 @@ public class TowerStats : TowerBaseStats {
     public TowerTargetPriority prioridadObjetivo = TowerTargetPriority.MasCercano;
     public float radioArea = 2.5f;
     public int cantidadObjetivos = 1;
+    public bool usarProyectil = true;
+    public GameObject prefabProyectil;
+    public float velocidadProyectil = 14f;
 
     void Awake() {
         AplicarDatosBase();
@@ -31,6 +34,9 @@ public class TowerStats : TowerBaseStats {
         prioridadObjetivo = datos.prioridadObjetivo;
         radioArea = Mathf.Max(0f, datos.radioArea);
         cantidadObjetivos = Mathf.Max(1, datos.cantidadObjetivos);
+        usarProyectil = datos.usarProyectil;
+        prefabProyectil = datos.prefabProyectil;
+        velocidadProyectil = Mathf.Max(0.1f, datos.velocidadProyectil);
         RegistrarLogEstadisticas();
     }
 
@@ -51,6 +57,9 @@ public class TowerStats : TowerBaseStats {
         prioridadObjetivo = datos.prioridadObjetivo;
         radioArea = Mathf.Max(0f, datos.radioArea);
         cantidadObjetivos = Mathf.Max(1, datos.cantidadObjetivos);
+        usarProyectil = datos.usarProyectil;
+        prefabProyectil = datos.prefabProyectil;
+        velocidadProyectil = Mathf.Max(0.1f, datos.velocidadProyectil);
         RegistrarLogEstadisticas();
     }
 

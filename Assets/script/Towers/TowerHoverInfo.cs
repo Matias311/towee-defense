@@ -164,7 +164,8 @@ public class TowerHoverInfo : MonoBehaviour
             $"Ataque cada: {estadisticas.tiempoEntreAtaques:0.00}s\n" +
             $"Tipo de ataque: {estadisticas.tipoAtaque}\n" +
             $"Objetivos: {estadisticas.cantidadObjetivos}\n" +
-            $"Prioridad: {estadisticas.prioridadObjetivo}";
+            $"Prioridad: {estadisticas.prioridadObjetivo}\n" +
+            $"Proyectil: {(estadisticas.usarProyectil ? "SI" : "NO")}";
     }
 
     string ObtenerNombreTipo()
