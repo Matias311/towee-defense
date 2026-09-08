@@ -9,7 +9,7 @@ public class VideoSettingsManager : MonoBehaviour
     public TMPro.TMP_Dropdown dropdownResolucion;
 
     [Header("UI - Modo de pantalla")]
-    [Tooltip("El Dropdown donde se elige: Pantalla completa exclusiva, Pantalla completa con ventana (sin bordes), o Ventana")]
+    [Tooltip("El Dropdown donde se elige: Pantalla completa exclusiva, Pantalla completa, o Ventana")]
     public TMPro.TMP_Dropdown dropdownModoPantalla;
 
     private Resolution[] resolucionesDisponibles;
@@ -63,7 +63,7 @@ public class VideoSettingsManager : MonoBehaviour
         List<string> opciones = new List<string>
         {
             "Pantalla completa exclusiva",
-            "Pantalla completa (ventana sin bordes)",
+            "Pantalla completa",
             "Ventana"
         };
 
