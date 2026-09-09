@@ -31,6 +31,10 @@ public class EnemySpawner : MonoBehaviour {
     [Tooltip("Arrastra aqui los mismos waypoints en el mismo orden que usaste en EnemyMovement")]
     public List<Transform> waypoints = new List<Transform>();
 
+    [Header("Barra de vida")]
+    [Tooltip("Sprite del marco de la barra de vida. Usa el sprite 04_0 de life_health_bar.")]
+    public Sprite marcoBarraVida;
+
     [Header("Configuracion de oleada")]
     [Tooltip("Si esta tildado, los enemigos no dejan de salir nunca (ignora Cantidad Enemigos)")]
     public bool spawnInfinito = true;
@@ -471,6 +475,11 @@ public class EnemySpawner : MonoBehaviour {
             EnemyStats estadisticas = nuevoEnemigo.GetComponent<EnemyStats>();
             if (estadisticas == null) {
                 estadisticas = nuevoEnemigo.AddComponent<EnemyStats>();
+            }
+
+            if (nuevoEnemigo.GetComponent<EnemyHealthBar>() == null) {
+                EnemyHealthBar barraVida = nuevoEnemigo.AddComponent<EnemyHealthBar>();
+                barraVida.ConfigurarMarco(marcoBarraVida);
             }
 
             EnemyStatsData datosSeleccionados = null;
