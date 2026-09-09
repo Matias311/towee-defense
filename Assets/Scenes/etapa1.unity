@@ -55352,6 +55352,7 @@ MonoBehaviour:
     baseProbability: 0
     probabilidadActual: 0
     estadisticas: {fileID: 0}
+  marcoBarraVida: {fileID: -765163847, guid: 0d922dd60a3c7426a9cb689ebc68f95b, type: 3}
   waypoints:
   - {fileID: 208557345}
   - {fileID: 71765651}
