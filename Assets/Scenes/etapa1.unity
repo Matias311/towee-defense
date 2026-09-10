@@ -55201,7 +55201,6 @@ MonoBehaviour:
     baseProbability: 0
     probabilidadActual: 0
     estadisticas: {fileID: 0}
-  marcoBarraVida: {fileID: -765163847, guid: 0d922dd60a3c7426a9cb689ebc68f95b, type: 3}
   waypoints:
   - {fileID: 208557345}
   - {fileID: 71765651}
@@ -55209,6 +55208,7 @@ MonoBehaviour:
   - {fileID: 1072831379}
   - {fileID: 1640840065}
   - {fileID: 1891444859}
+  marcoBarraVida: {fileID: -765163847, guid: 0d922dd60a3c7426a9cb689ebc68f95b, type: 3}
   spawnInfinito: 1
   modoNiveles: 0
   cantidadEnemigos: 10
@@ -63477,13 +63477,13 @@ MonoBehaviour:
   torresDisponibles:
   - tipo: 0
     prefab: {fileID: 919132149155446097, guid: 5a0fc9626fb844761bdaba7fee7106e9, type: 3}
-    estadisticas: {fileID: 0}
+    estadisticas: {fileID: 11400000, guid: b56db9572560a4257b9f62739ec5f313, type: 2}
   - tipo: 0
     prefab: {fileID: 919132149155446097, guid: a31a3aa36dffc426583221e384de654f, type: 3}
-    estadisticas: {fileID: 0}
+    estadisticas: {fileID: 11400000, guid: b56db9572560a4257b9f62739ec5f313, type: 2}
   - tipo: 0
     prefab: {fileID: 919132149155446097, guid: 77416d5e63cad485facdae25bb6d77e0, type: 3}
-    estadisticas: {fileID: 0}
+    estadisticas: {fileID: 11400000, guid: b56db9572560a4257b9f62739ec5f313, type: 2}
   estadisticasTorre: {fileID: 0}
   puntosPorTorre: 24
   torresIniciales: 3
