@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: -2240839466273572773}
   - component: {fileID: -2922365113811295378}
   - component: {fileID: -2851559358240051050}
+  - component: {fileID: 1851189930127312882}
   m_Layer: 0
   m_Name: orco
   m_TagString: Untagged
@@ -170,3 +171,31 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 0.2}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &1851189930127312882
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 655450406672987453}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2fab2a475d984617809d8722f4a5201f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyStats
+  datos: {fileID: 0}
+  tipo: 0
+  vidaMaxima: 100
+  vidaActual: 100
+  "da\xF1o": 10
+  defensa: 0
+  penetracion: 0
+  "tipoDa\xF1o": 0
+  "tipoDa\xF1oAlterado": 0
+  "da\xF1oAlterado": 0
+  pasiva: 0
+  bonusPasiva: 0
+  recompensa: 10
+  prefabExplosion: {fileID: 3840011620383263466, guid: 53fefe0a0bda4174d801e1c727426224, type: 3}
+  prefabMaterial: {fileID: 0}
+  probabilidadDrop: 0.3

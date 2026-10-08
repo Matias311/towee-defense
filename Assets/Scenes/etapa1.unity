@@ -56997,7 +56997,7 @@ MonoBehaviour:
     probabilidadActual: 0
     estadisticas: {fileID: 0}
   - type: 3
-    prefab: {fileID: 7455943845879857881, guid: a7c5f2f077ab82a46a628c280f74ac9a, type: 3}
+    prefab: {fileID: 6450804038354463610, guid: ecbac1f1725f1994bae0c65114f947ea, type: 3}
     baseProbability: 0
     probabilidadActual: 0
     estadisticas: {fileID: 0}

@@ -1,6 +1,7 @@
 using UnityEngine;
 
-public class EnemyStats : EnemyBaseStats {
+public class EnemyStats : EnemyBaseStats
+{
     [Header("Datos base")]
     public EnemyStatsData datos;
     public EnemyType tipo;
@@ -18,11 +19,19 @@ public class EnemyStats : EnemyBaseStats {
     public float bonusPasiva;
     public int recompensa = 10;
 
+    // variable que soltaran los objetos cuando mueran, para que el jugador pueda recogerlos y obtener recursos
+
+    [Header("Efectos y drops")]
+    public GameObject prefabExplosion;
+    public GameObject prefabMaterial;
+    [Range(0f, 1f)] public float probabilidadDrop = 0.3f;
+
     private bool configurado;
     private float[] dañoAlteradoAcumulado = new float[5];
     private float[] tiempoAlteradoRestante = new float[5];
 
-    void Awake() {
+    void Awake()
+    {
         AplicarDatosBase();
     }
 
@@ -31,9 +40,11 @@ public class EnemyStats : EnemyBaseStats {
         int nivel,
         int wave,
         EnemyStatsData datosConfigurados = null
-    ) {
+    )
+    {
         this.tipo = tipo;
-        if (datosConfigurados != null) {
+        if (datosConfigurados != null)
+        {
             datos = datosConfigurados;
         }
 
@@ -73,7 +84,8 @@ public class EnemyStats : EnemyBaseStats {
         RegistrarLogEstadisticas();
     }
 
-    void RegistrarLogEstadisticas() {
+    void RegistrarLogEstadisticas()
+    {
         string tipoAlteradoTexto = tipoDaño == DamageType.Alterado
             ? $", alterado={tipoDañoAlterado}, dañoAlterado={dañoAlterado:F1}, duracionAlterado={(datos != null ? datos.duracionDañoAlterado : 3f):F1}s"
             : string.Empty;
@@ -87,7 +99,8 @@ public class EnemyStats : EnemyBaseStats {
         );
     }
 
-    public DamageData CrearDanio() {
+    public DamageData CrearDanio()
+    {
         return new DamageData(
             tipoDaño == DamageType.Alterado ? dañoAlterado : daño,
             tipoDaño,
@@ -97,14 +110,17 @@ public class EnemyStats : EnemyBaseStats {
         );
     }
 
-    public void RecibirDanio(float cantidad) {
+    public void RecibirDanio(float cantidad)
+    {
         RecibirDanio(new DamageData(cantidad));
     }
 
-    public override void RecibirDanio(DamageData dañoRecibido) {
+    public override void RecibirDanio(DamageData dañoRecibido)
+    {
         if (dañoRecibido.cantidad <= 0f || vidaActual <= 0f) return;
 
-        if (dañoRecibido.tipo == DamageType.Alterado) {
+        if (dañoRecibido.tipo == DamageType.Alterado)
+        {
             int indice = (int)dañoRecibido.tipoAlterado;
             dañoAlteradoAcumulado[indice] += dañoRecibido.cantidad;
             tiempoAlteradoRestante[indice] = Mathf.Max(
@@ -121,13 +137,16 @@ public class EnemyStats : EnemyBaseStats {
             );
 
         vidaActual = Mathf.Max(0f, vidaActual - dañoFinal);
-        if (vidaActual <= 0f) {
+        if (vidaActual <= 0f)
+        {
             Morir();
         }
     }
 
-    void Update() {
-        for (int i = 0; i < dañoAlteradoAcumulado.Length; i++) {
+    void Update()
+    {
+        for (int i = 0; i < dañoAlteradoAcumulado.Length; i++)
+        {
             if (tiempoAlteradoRestante[i] <= 0f) continue;
 
             tiempoAlteradoRestante[i] -= Time.deltaTime;
@@ -138,16 +157,29 @@ public class EnemyStats : EnemyBaseStats {
         }
     }
 
-    void Morir() {
+    void Morir()
+    {
         TowerPlacer towerPlacer = FindAnyObjectByType<TowerPlacer>();
-        if (towerPlacer != null) {
+        if (towerPlacer != null)
+        {
             towerPlacer.RegistrarPuntos(recompensa);
+        }
+
+        if (prefabExplosion != null)
+        {
+            Instantiate(prefabExplosion, transform.position, Quaternion.identity);
+        }
+
+        if (prefabMaterial != null && Random.value <= probabilidadDrop)
+        {
+            Instantiate(prefabMaterial, transform.position + Vector3.up * 0.5f, Quaternion.identity);
         }
 
         Destroy(gameObject);
     }
 
-    void AplicarDatosBase() {
+    void AplicarDatosBase()
+    {
         if (configurado) return;
 
         vidaMaxima = datos != null ? datos.vida : vidaMaxima;
@@ -162,8 +194,10 @@ public class EnemyStats : EnemyBaseStats {
         pasiva = datos != null ? datos.pasiva : pasiva;
     }
 
-    float ObtenerVidaPorTipo(EnemyType tipo) {
-        switch (tipo) {
+    float ObtenerVidaPorTipo(EnemyType tipo)
+    {
+        switch (tipo)
+        {
             case EnemyType.Special: return 150f;
             case EnemyType.UltraPro: return 225f;
             case EnemyType.BossL1: return 500f;
@@ -174,8 +208,10 @@ public class EnemyStats : EnemyBaseStats {
         }
     }
 
-    float ObtenerDañoPorTipo(EnemyType tipo) {
-        switch (tipo) {
+    float ObtenerDañoPorTipo(EnemyType tipo)
+    {
+        switch (tipo)
+        {
             case EnemyType.Special: return 15f;
             case EnemyType.UltraPro: return 25f;
             case EnemyType.BossL1: return 35f;
@@ -186,8 +222,10 @@ public class EnemyStats : EnemyBaseStats {
         }
     }
 
-    float ObtenerDefensaPorTipo(EnemyType tipo) {
-        switch (tipo) {
+    float ObtenerDefensaPorTipo(EnemyType tipo)
+    {
+        switch (tipo)
+        {
             case EnemyType.Special: return 15f;
             case EnemyType.UltraPro: return 30f;
             case EnemyType.BossL1: return 50f;
@@ -198,10 +236,12 @@ public class EnemyStats : EnemyBaseStats {
         }
     }
 
-    void AplicarPerfilAutomatico(EnemyType tipo, bool usarPerfil) {
+    void AplicarPerfilAutomatico(EnemyType tipo, bool usarPerfil)
+    {
         if (!usarPerfil) return;
 
-        switch (tipo) {
+        switch (tipo)
+        {
             case EnemyType.Special:
                 pasiva = EnemyPassiveType.Resistente;
                 bonusPasiva = 0.15f;
@@ -232,7 +272,8 @@ public class EnemyStats : EnemyBaseStats {
                 break;
         }
 
-        if (tipo == EnemyType.Special || tipo == EnemyType.UltraPro) {
+        if (tipo == EnemyType.Special || tipo == EnemyType.UltraPro)
+        {
             tipoDaño = DamageType.Alterado;
             tipoDañoAlterado = tipo == EnemyType.Special
                 ? AlteredDamageType.Veneno
@@ -241,9 +282,11 @@ public class EnemyStats : EnemyBaseStats {
         }
     }
 
-    void AplicarPasiva() {
+    void AplicarPasiva()
+    {
         float bonus = Mathf.Max(0f, datos != null ? datos.bonusPasiva : bonusPasiva);
-        switch (pasiva) {
+        switch (pasiva)
+        {
             case EnemyPassiveType.Resistente:
                 defensa *= 1f + bonus;
                 break;

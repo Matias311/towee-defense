@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 7880639062378332045}
   - component: {fileID: 7163512338734548292}
   - component: {fileID: -2882774992613031467}
+  - component: {fileID: -6022944367730640335}
   m_Layer: 0
   m_Name: enemigoNormal
   m_TagString: Untagged
@@ -170,3 +171,31 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 0.2}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &-6022944367730640335
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6504764155108374673}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2fab2a475d984617809d8722f4a5201f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyStats
+  datos: {fileID: 0}
+  tipo: 0
+  vidaMaxima: 100
+  vidaActual: 100
+  "da\xF1o": 10
+  defensa: 0
+  penetracion: 0
+  "tipoDa\xF1o": 0
+  "tipoDa\xF1oAlterado": 0
+  "da\xF1oAlterado": 0
+  pasiva: 0
+  bonusPasiva: 0
+  recompensa: 10
+  prefabExplosion: {fileID: 3840011620383263466, guid: 53fefe0a0bda4174d801e1c727426224, type: 3}
+  prefabMaterial: {fileID: 666555990108958511, guid: a71aa8cdb9c69a345a6f7d4e17ba33eb, type: 3}
+  probabilidadDrop: 0.3
