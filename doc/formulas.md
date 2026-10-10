@@ -1,6 +1,6 @@
 # Fórmulas y porcentajes del `EnemySpawner`
 
-Este documento describe el cálculo que usa `Assets/script/EnemySpawner.cs` para
+Este documento describe el cálculo que usa `Assets/Scripts/Enemies/EnemySpawner.cs` para
 seleccionar enemigos, avanzar oleadas y aumentar la dificultad. Los valores de
 la configuración activa corresponden al objeto `EnemySpawner` de
 `Assets/Scenes/etapa1.unity`.
