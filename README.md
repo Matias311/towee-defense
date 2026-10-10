@@ -36,3 +36,28 @@ git lfs pull
 3. Para agregar nuevas texturas grandes, usar: `git lfs track "ruta/al/archivo.png"`
 
 ¡Listo! Ya puedes abrir el proyecto en Unity y comenzar a trabajar.
+
+## Organización del proyecto
+
+```text
+Assets/
+├── Art/                 # Recursos visuales: entorno, materiales, sprites y torres
+├── Audio/               # Música y mezcladores de audio
+├── Prefabs/Enemies/     # Prefabs de enemigos
+├── Scenes/              # Escenas del juego y menús
+├── Scripts/             # Código del juego, agrupado por función
+│   ├── Camera/
+│   ├── Collection/
+│   ├── Data/
+│   ├── Enemies/
+│   ├── Menu/
+│   ├── Towers/
+│   └── Utilities/
+├── Settings/            # URP, perfiles e Input System
+├── ThirdParty/          # Polytope Studio, NaaszArts y datos de ProBuilder
+└── TextMesh Pro/         # Recursos de TMP en su ubicación original
+```
+
+`Packages/` y `ProjectSettings/` mantienen la configuración de Unity. `Library/`, `Temp/`, `Logs/` y `UserSettings/` son carpetas generadas localmente.
+
+Al mover o renombrar recursos, mueve también su archivo `.meta` para conservar el GUID y las referencias de escenas y prefabs. Los recursos importados de terceros mantienen su estructura interna; en `Art/Towers/Torreta-model/Models/Turret00` a `Turret08`, cada modelo conserva juntos su OBJ, MTL y textura. La carpeta `Torreta-model` separa además `UI`, `Projectiles`, `Prefabs` y `Data`.
