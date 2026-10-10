@@ -20,6 +20,9 @@ public class EnemyProbability {
     public float probabilidadActual;
     [Tooltip("Estadisticas que usaran los enemigos de este tipo")]
     public EnemyStatsData estadisticas;
+    [Min(0f)]
+    [Tooltip("Multiplica el daño de este enemigo al llegar a FantasyHouse. 1 = normal, 2 = doble, 0 = sin daño.")]
+    public float multiplicadorDañoCasa = 1f;
 }
 
 public class EnemySpawner : MonoBehaviour {
@@ -30,6 +33,9 @@ public class EnemySpawner : MonoBehaviour {
     [Header("Waypoints")]
     [Tooltip("Arrastra aqui los mismos waypoints en el mismo orden que usaste en EnemyMovement")]
     public List<Transform> waypoints = new List<Transform>();
+
+    [Header("Vida de FantasyHouse")]
+    public FantasyHouseHealth fantasyHouse;
 
     [Header("Barra de vida")]
     [Tooltip("Sprite del marco de la barra de vida. Usa el sprite 04_0 de life_health_bar.")]
@@ -465,6 +471,7 @@ public class EnemySpawner : MonoBehaviour {
             EnemyMovement movimiento = nuevoEnemigo.GetComponent<EnemyMovement>();
             if (movimiento != null) {
                 movimiento.waypoints = waypoints;
+                movimiento.fantasyHouse = fantasyHouse;
 
                 // Calcular la velocidad progresiva: aumenta un poco con cada enemigo, sin pasar el maximo
                 float velocidadCalculada = ObtenerVelocidadInicial()
@@ -486,6 +493,8 @@ public class EnemySpawner : MonoBehaviour {
             foreach (var prob in enemyProbabilities) {
                 if (prob != null && prob.type == tipoSeleccionado) {
                     datosSeleccionados = prob.estadisticas;
+                    if (movimiento != null)
+                        movimiento.multiplicadorDañoCasa = Mathf.Max(0f, prob.multiplicadorDañoCasa);
                     break;
                 }
             }

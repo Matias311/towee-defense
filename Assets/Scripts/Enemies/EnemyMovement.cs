@@ -22,6 +22,11 @@ public class EnemyMovement : MonoBehaviour
     [Header("Al llegar al final")]
     // Indica si el enemigo debe destruirse al llegar al último waypoint
     public bool destruirAlLlegar = true;
+    public FantasyHouseHealth fantasyHouse;
+    [Min(0f)]
+    [Tooltip("Multiplica el daño del enemigo al llegar a la casa.")]
+    public float multiplicadorDañoCasa = 1f;
+    private bool llegadaRegistrada;
 
     // Indice del waypoint actual al que el enemigo se dirige
     private int indiceActual = 0;
@@ -43,10 +48,7 @@ public class EnemyMovement : MonoBehaviour
         // Si ya llego al ultimo waypoint
         if (indiceActual >= waypoints.Count)
         {
-            if (destruirAlLlegar)
-            {
-                Destroy(gameObject);
-            }
+            RegistrarLlegada();
             return;
         }
 
@@ -78,6 +80,19 @@ public class EnemyMovement : MonoBehaviour
         if (Vector3.Distance(transform.position, objetivo.position) < distanciaLlegada)
         {
             indiceActual++;
+            if (indiceActual >= waypoints.Count) RegistrarLlegada();
         }
+    }
+
+    void RegistrarLlegada()
+    {
+        if (llegadaRegistrada) return;
+        llegadaRegistrada = true;
+
+        EnemyStats estadisticas = GetComponent<EnemyStats>();
+        if (fantasyHouse != null && estadisticas != null && estadisticas.vidaActual > 0f)
+            fantasyHouse.RecibirDanio(estadisticas.daño * Mathf.Max(0f, multiplicadorDañoCasa));
+
+        if (destruirAlLlegar) Destroy(gameObject);
     }
 }
