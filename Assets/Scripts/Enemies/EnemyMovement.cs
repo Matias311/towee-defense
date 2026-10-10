@@ -22,6 +22,8 @@ public class EnemyMovement : MonoBehaviour
     [Header("Al llegar al final")]
     // Indica si el enemigo debe destruirse al llegar al último waypoint
     public bool destruirAlLlegar = true;
+    public FantasyHouseHealth fantasyHouse;
+    private bool llegadaRegistrada;
 
     // Indice del waypoint actual al que el enemigo se dirige
     private int indiceActual = 0;
@@ -43,10 +45,7 @@ public class EnemyMovement : MonoBehaviour
         // Si ya llego al ultimo waypoint
         if (indiceActual >= waypoints.Count)
         {
-            if (destruirAlLlegar)
-            {
-                Destroy(gameObject);
-            }
+            RegistrarLlegada();
             return;
         }
 
@@ -78,6 +77,19 @@ public class EnemyMovement : MonoBehaviour
         if (Vector3.Distance(transform.position, objetivo.position) < distanciaLlegada)
         {
             indiceActual++;
+            if (indiceActual >= waypoints.Count) RegistrarLlegada();
         }
+    }
+
+    void RegistrarLlegada()
+    {
+        if (llegadaRegistrada) return;
+        llegadaRegistrada = true;
+
+        EnemyStats estadisticas = GetComponent<EnemyStats>();
+        if (fantasyHouse != null && estadisticas != null && estadisticas.vidaActual > 0f)
+            fantasyHouse.RecibirDanio(estadisticas.daño);
+
+        if (destruirAlLlegar) Destroy(gameObject);
     }
 }

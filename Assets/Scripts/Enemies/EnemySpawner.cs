@@ -31,6 +31,9 @@ public class EnemySpawner : MonoBehaviour {
     [Tooltip("Arrastra aqui los mismos waypoints en el mismo orden que usaste en EnemyMovement")]
     public List<Transform> waypoints = new List<Transform>();
 
+    [Header("Vida de FantasyHouse")]
+    public FantasyHouseHealth fantasyHouse;
+
     [Header("Barra de vida")]
     [Tooltip("Sprite del marco de la barra de vida. Usa el sprite 04_0 de life_health_bar.")]
     public Sprite marcoBarraVida;
@@ -465,6 +468,7 @@ public class EnemySpawner : MonoBehaviour {
             EnemyMovement movimiento = nuevoEnemigo.GetComponent<EnemyMovement>();
             if (movimiento != null) {
                 movimiento.waypoints = waypoints;
+                movimiento.fantasyHouse = fantasyHouse;
 
                 // Calcular la velocidad progresiva: aumenta un poco con cada enemigo, sin pasar el maximo
                 float velocidadCalculada = ObtenerVelocidadInicial()

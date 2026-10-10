@@ -2011,6 +2011,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 382267210}
+  - component: {fileID: 382267211}
   m_Layer: 5
   m_Name: PanelVida
   m_TagString: Untagged
@@ -2018,6 +2019,20 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
+--- !u!114 &382267211
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 382267209}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 721acd8487f54827866ca7e1ce83b61e, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::FantasyHouseHealth
+  vidaMaxima: 100
+  rellenoVida: {fileID: 574968536}
 --- !u!224 &382267210
 RectTransform:
   m_ObjectHideFlags: 0
@@ -53753,10 +53768,10 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_Sprite: {fileID: 21300000, guid: 5e9955e5d4ca1bc4380fc18914a996c6, type: 3}
-  m_Type: 0
+  m_Type: 3
   m_PreserveAspect: 0
   m_FillCenter: 1
-  m_FillMethod: 4
+  m_FillMethod: 0
   m_FillAmount: 1
   m_FillClockwise: 1
   m_FillOrigin: 0
@@ -57023,6 +57038,7 @@ MonoBehaviour:
   - {fileID: 1072831379}
   - {fileID: 1640840065}
   - {fileID: 1891444859}
+  fantasyHouse: {fileID: 382267211}
   marcoBarraVida: {fileID: -765163847, guid: 0d922dd60a3c7426a9cb689ebc68f95b, type: 3}
   spawnInfinito: 1
   modoNiveles: 0
@@ -66414,7 +66430,7 @@ MonoBehaviour:
   - tipo: 0
     prefab: {fileID: 919132149155446097, guid: 77416d5e63cad485facdae25bb6d77e0, type: 3}
     estadisticas: {fileID: 11400000, guid: b56db9572560a4257b9f62739ec5f313, type: 2}
-  estadisticasTorre: {fileID: 0}
+  estadisticasTorre: {fileID: 11400000, guid: b56db9572560a4257b9f62739ec5f313, type: 2}
   puntosPorTorre: 24
   torresIniciales: 3
   puntosActuales: 0
