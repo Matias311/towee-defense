@@ -20,6 +20,9 @@ public class EnemyProbability {
     public float probabilidadActual;
     [Tooltip("Estadisticas que usaran los enemigos de este tipo")]
     public EnemyStatsData estadisticas;
+    [Min(0f)]
+    [Tooltip("Multiplica el daño de este enemigo al llegar a FantasyHouse. 1 = normal, 2 = doble, 0 = sin daño.")]
+    public float multiplicadorDañoCasa = 1f;
 }
 
 public class EnemySpawner : MonoBehaviour {
@@ -490,6 +493,8 @@ public class EnemySpawner : MonoBehaviour {
             foreach (var prob in enemyProbabilities) {
                 if (prob != null && prob.type == tipoSeleccionado) {
                     datosSeleccionados = prob.estadisticas;
+                    if (movimiento != null)
+                        movimiento.multiplicadorDañoCasa = Mathf.Max(0f, prob.multiplicadorDañoCasa);
                     break;
                 }
             }
