@@ -719,7 +719,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: -74}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &136247543
@@ -1036,7 +1036,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 69}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &184994766
@@ -1963,7 +1963,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 59, y: -2}
+  m_AnchoredPosition: {x: 57, y: -70}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &364698272
@@ -2019,20 +2019,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &382267211
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 382267209}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 721acd8487f54827866ca7e1ce83b61e, type: 3}
-  m_Name:
-  m_EditorClassIdentifier: Assembly-CSharp::FantasyHouseHealth
-  vidaMaxima: 100
-  rellenoVida: {fileID: 574968536}
 --- !u!224 &382267210
 RectTransform:
   m_ObjectHideFlags: 0
@@ -2050,9 +2036,23 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 57, y: 0}
+  m_AnchoredPosition: {x: 57, y: -70}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &382267211
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 382267209}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 721acd8487f54827866ca7e1ce83b61e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::FantasyHouseHealth
+  vidaMaxima: 100
+  rellenoVida: {fileID: 574968536}
 --- !u!1 &396689301
 GameObject:
   m_ObjectHideFlags: 0
@@ -56313,7 +56313,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -7, y: 0}
+  m_AnchoredPosition: {x: -7, y: -67}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &868723596
@@ -57001,36 +57001,43 @@ MonoBehaviour:
     baseProbability: 0
     probabilidadActual: 0
     estadisticas: {fileID: 0}
+    "multiplicadorDa\xF1oCasa": 1
   - type: 1
     prefab: {fileID: 655450406672987453, guid: bbafcda42fc8c3b4f860d5b8d9b2b2ca, type: 3}
     baseProbability: 0
     probabilidadActual: 0
     estadisticas: {fileID: 0}
+    "multiplicadorDa\xF1oCasa": 1
   - type: 2
     prefab: {fileID: 1543284558968720769, guid: e0ff4707dbd5459499a88023d1dc2b9b, type: 3}
     baseProbability: 0
     probabilidadActual: 0
     estadisticas: {fileID: 0}
+    "multiplicadorDa\xF1oCasa": 1
   - type: 3
     prefab: {fileID: 6450804038354463610, guid: ecbac1f1725f1994bae0c65114f947ea, type: 3}
     baseProbability: 0
     probabilidadActual: 0
     estadisticas: {fileID: 0}
+    "multiplicadorDa\xF1oCasa": 1
   - type: 4
     prefab: {fileID: 2673051912191061337, guid: 797e7438d8fa57f448847c8879250d17, type: 3}
     baseProbability: 0
     probabilidadActual: 0
     estadisticas: {fileID: 0}
+    "multiplicadorDa\xF1oCasa": 1
   - type: 5
     prefab: {fileID: 7321250219957679058, guid: adc1eaf95d913ac4eb8036a4112a4375, type: 3}
     baseProbability: 0
     probabilidadActual: 0
     estadisticas: {fileID: 0}
+    "multiplicadorDa\xF1oCasa": 1
   - type: 6
     prefab: {fileID: 8230559991850308285, guid: 856b9e353a141c444a8a4771caa80d0d, type: 3}
     baseProbability: 0
     probabilidadActual: 0
     estadisticas: {fileID: 0}
+    "multiplicadorDa\xF1oCasa": 1
   waypoints:
   - {fileID: 208557345}
   - {fileID: 71765651}
