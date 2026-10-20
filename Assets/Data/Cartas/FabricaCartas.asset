@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b34de327d8424434be2497602f7f39d2, type: 3}
+  m_Name: FabricaCartas
+  m_EditorClassIdentifier: Assembly-CSharp::CartaFactory
+  normal: {fileID: 21300000, guid: 1227a739244938a349246300ba13424d, type: 3}
+  rara: {fileID: 21300000, guid: 6f62210a8a4e576089e9d76dc05de62a, type: 3}
+  epica: {fileID: 21300000, guid: 2c05f7d11cb87793bb366adf860490e1, type: 3}
+  legendaria: {fileID: 21300000, guid: b2af719fb4f4bbc7c924cc2bdae5296e, type: 3}
+  adornoEpico: {fileID: 21300000, guid: 47abf84932d0882b48fdc10054f1045f, type: 3}
+  adornoLegendario: {fileID: 21300000, guid: 38745fc1b20b6eeec82b0e802ee3fadf, type: 3}
