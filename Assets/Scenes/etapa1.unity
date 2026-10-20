@@ -66449,7 +66449,7 @@ MonoBehaviour:
   radioValidacion: 1.5
   capasBloqueadas:
     serializedVersion: 2
-    m_Bits: 192
+    m_Bits: 0
   bloquearCaminoPorWaypoints: 1
   radioCamino: 1.5
   offsetRotacionTorre: 0
