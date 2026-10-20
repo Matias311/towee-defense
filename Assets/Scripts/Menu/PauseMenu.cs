@@ -52,6 +52,7 @@ public class PauseMenu : MonoBehaviour
 
     public void Pausar()
     {
+        BloqueoEntradaUI.EstablecerPanelAbierto(this, true);
         juegoPausado = true;
         panelPausa.SetActive(true);
         grupoBotonesPausa.SetActive(true);
@@ -63,6 +64,7 @@ public class PauseMenu : MonoBehaviour
     // Conectar al boton "Reanudar"
     public void Reanudar()
     {
+        BloqueoEntradaUI.EstablecerPanelAbierto(this, false);
         juegoPausado = false;
         panelPausa.SetActive(false);
 
@@ -72,6 +74,7 @@ public class PauseMenu : MonoBehaviour
     // Conectar al boton "Opciones" del menu de pausa
     public void AbrirOpciones()
     {
+        BloqueoEntradaUI.EstablecerPanelAbierto(this, true);
         grupoBotonesPausa.SetActive(false);
         panelOpciones.SetActive(true);
     }
@@ -82,6 +85,13 @@ public class PauseMenu : MonoBehaviour
     {
         panelOpciones.SetActive(false);
         grupoBotonesPausa.SetActive(true);
+        BloqueoEntradaUI.EstablecerPanelAbierto(this,
+            juegoPausado || (panelPausa != null && panelPausa.activeInHierarchy));
+    }
+
+    private void OnDisable()
+    {
+        BloqueoEntradaUI.EstablecerPanelAbierto(this, false);
     }
 
     // Conectar al boton "Salir" del menu de pausa
