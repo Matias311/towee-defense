@@ -280,12 +280,6 @@ public class TowerPlacer : MonoBehaviour
     {
         if (colocando)
         {
-            bool entradaBloqueada = BloqueoEntradaUI.BloqueaColocacion();
-            if (previewTorre != null)
-                previewTorre.SetActive(!entradaBloqueada);
-            if (entradaBloqueada)
-                return;
-
             ActualizarPreview();
 
             if (Input.GetMouseButtonDown(0))
@@ -431,8 +425,6 @@ public class TowerPlacer : MonoBehaviour
 
     void IntentarColocarTorre()
     {
-        if (BloqueoEntradaUI.BloqueaColocacion()) return;
-
         TowerRangeVisualizer visualizador = previewTorre.GetComponent<TowerRangeVisualizer>();
         Vector3 centroTorre = visualizador.ObtenerCentroVisualWorld();
         if (!EsPosicionValida(centroTorre))
