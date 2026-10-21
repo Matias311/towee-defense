@@ -1,0 +1,14 @@
+Los cuatro audios están instalados en esta carpeta.
+Para reemplazarlos, exporta las composiciones de music/strudel desde
+Strudel > export y conserva estos nombres:
+
+etapa1.wav: 01-una-chispa-bajo-la-lluvia.js
+etapa2.wav: 02-lo-que-las-sombras-recuerdan.js
+etapa3.wav: 03-luces-bajo-la-tierra.js
+etapa4.wav: 04-dos-luces-en-el-abismo.js
+
+También se admite OGG. Usa un solo formato por etapa, sin duplicar nombres.
+MusicaEtapas se crea automáticamente al pulsar Play y elige la canción por
+el nombre de la escena. No hay que añadir componentes a las escenas.
+
+Instrucciones de exportación y comprobación: doc/musica.md.
