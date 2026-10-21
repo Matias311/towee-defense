@@ -16,6 +16,11 @@ public class PauseMenu : MonoBehaviour
     [Header("Opciones")]
     public bool pausarTiempo = true;
 
+    // NUEVO: escena a la que vuelve el boton "Menu principal"
+    [Header("Navegacion")]
+    [Tooltip("Nombre exacto de la escena (debe estar en Build Profiles). Puede ser MenuPrincipal o Etapas")]
+    public string escenaMenuPrincipal = "MenuPrincipal";
+
     private bool juegoPausado = false;
 
     void Start()
@@ -92,6 +97,15 @@ public class PauseMenu : MonoBehaviour
     private void OnDisable()
     {
         BloqueoEntradaUI.EstablecerPanelAbierto(this, false);
+    }
+
+    // NUEVO: conectar al boton "Menu principal" del menu de pausa
+    public void VolverAlMenuPrincipal()
+    {
+        BloqueoEntradaUI.EstablecerPanelAbierto(this, false);
+        juegoPausado = false;
+        Time.timeScale = 1f; // importante: si no, la escena nueva carga congelada
+        SceneManager.LoadScene(escenaMenuPrincipal);
     }
 
     // Conectar al boton "Salir" del menu de pausa
