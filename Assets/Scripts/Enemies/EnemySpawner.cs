@@ -46,7 +46,7 @@ public class EnemySpawner : MonoBehaviour {
     [Tooltip("Si esta tildado, los enemigos no dejan de salir nunca (ignora Cantidad Enemigos)")]
     public bool spawnInfinito = true;
 
-    [Tooltip("Activa la progresion de 3 niveles con 4 waves y un boss por nivel")]
+    [Tooltip("Activa la progresion de 4 etapas con 4 waves y un boss por etapa")]
     public bool modoNiveles = true;
 
     [Tooltip("Cuantos enemigos van a salir en total (solo se usa si Spawn Infinito esta destildado)")]
@@ -537,7 +537,11 @@ public class EnemySpawner : MonoBehaviour {
                 if (prob != null && prob.type == tipoSeleccionado) {
                     datosSeleccionados = prob.estadisticas;
                     if (movimiento != null)
+                    {
                         movimiento.multiplicadorDañoCasa = Mathf.Max(0f, prob.multiplicadorDañoCasa);
+                        if (datosSeleccionados != null)
+                            movimiento.speed *= Mathf.Max(.1f, datosSeleccionados.multiplicadorVelocidad);
+                    }
                     break;
                 }
             }

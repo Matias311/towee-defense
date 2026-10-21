@@ -23,9 +23,10 @@ public sealed class CartaTorreta
         Comprada = true;
         return true;
     }
-    public string Nombre => "Torreta " + (Tipo == TowerType.Basica ? "básica"
-        : Tipo == TowerType.Ametralladora ? "ametralladora"
-        : Tipo == TowerType.Francotirador ? "francotirador" : "cañón");
+    public string Nombre => Rareza == RarezaCarta.Normal ? "Torreta cuerpo a cuerpo"
+        : Rareza == RarezaCarta.Rara ? "Torreta aturdidora"
+        : Rareza == RarezaCarta.Epica ? "Torreta francotiradora"
+        : "Torreta de área";
 
     public CartaTorreta(GameObject prefab, TowerType tipo, RarezaCarta rareza)
         : this(prefab, tipo, rareza, new BonosDanioTorreta().Multiplicador(rareza)) { }

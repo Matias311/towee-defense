@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ad1b46e5b82f4de081c971fae4c07f11, type: 3}
+  m_Name: Ametralladora
+  m_EditorClassIdentifier:
+  tipo: 2
+  "da\xF1o": 7
+  defensa: 0
+  penetracion: 0
+  rango: 5.5
+  tiempoEntreAtaques: 0.75
+  buffArea: 0
+  tipoAtaque: 0
+  prioridadObjetivo: 0
+  radioArea: 0
+  cantidadObjetivos: 1
+  usarProyectil: 1
+  prefabProyectil: {fileID: 1279597079134489695, guid: 81bb9947ff12e46539a99430b1814d22, type: 3}
+  velocidadProyectil: 20
+  ralentizacionImpacto: 40
+  duracionRalentizacion: 1.5

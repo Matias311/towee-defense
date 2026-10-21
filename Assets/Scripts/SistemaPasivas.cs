@@ -131,13 +131,20 @@ public static class SistemaPasivas
 
     public static void AplicarImpacto(EnemyStats objetivo, DamageData danio, PerfilImpactoPasiva perfil, bool esProyectil = false)
     {
-        if (objetivo == null || objetivo.vidaActual <= 0) return;
-        if (esProyectil && objetivo.ConsumirEscudoProyectil()) return;
+        AplicarImpactoConResultado(objetivo, danio, perfil, esProyectil);
+    }
+
+    public static bool AplicarImpactoConResultado(EnemyStats objetivo, DamageData danio, PerfilImpactoPasiva perfil, bool esProyectil = false)
+    {
+        if (objetivo == null || objetivo.vidaActual <= 0) return false;
+        if (esProyectil && objetivo.ConsumirEscudoProyectil()) return false;
         bool jefe = objetivo.esMiniJefe || (objetivo.tipo >= EnemyType.BossL1 && objetivo.tipo <= EnemyType.BossL4);
         DamageData resuelto = perfil.Resolver(danio, objetivo.vidaActual, jefe, Random.value, Random.value);
+        float vidaAnterior = objetivo.vidaActual;
         objetivo.RecibirDanio(resuelto);
         if (objetivo.vidaActual > 0 && PerfilImpactoPasiva.Ocurre(perfil.sangrado, Random.value))
             objetivo.AplicarSangrado(resuelto.cantidad * perfil.danioSangrado / 100f, perfil.duracionSangrado);
+        return objetivo.vidaActual < vidaAnterior;
     }
 
     public static float Calcular(EstadisticaPasiva estadistica, float valorBase, TowerType tipo) =>

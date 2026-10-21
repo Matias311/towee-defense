@@ -35,4 +35,9 @@ public class TowerStatsData : ScriptableObject {
     public bool usarProyectil = true;
     public GameObject prefabProyectil;
     public float velocidadProyectil = 14f;
+    [Header("Efectos al impactar")]
+    [Range(0f, 95f), Tooltip("Porcentaje de velocidad que pierde el enemigo al recibir el impacto.")]
+    public float ralentizacionImpacto;
+    [Min(0f), Tooltip("Duración en segundos de la ralentización.")]
+    public float duracionRalentizacion;
 }

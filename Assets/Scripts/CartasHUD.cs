@@ -166,7 +166,16 @@ public class CartasHUD : MonoBehaviour
     private void ActualizarTextoDetalle()
     {
         CartaTorreta carta = ofertaDetalle.Carta;
-        detalle.Mostrar(carta.Nombre, carta.Rareza + "\nDaño ×" + carta.MultiplicadorDanio.ToString("0.##")
+        TowerStatsData datos = colocador.EstadisticasDe(carta);
+        string rol = carta.Rareza == RarezaCarta.Normal ? "Cuerpo a cuerpo · rápido"
+            : carta.Rareza == RarezaCarta.Rara ? "Aturde · ralentiza al impactar"
+            : carta.Rareza == RarezaCarta.Epica ? "Francotirador · gran alcance"
+            : "Cuerpo a cuerpo · daño en área";
+        string atributos = datos == null ? string.Empty
+            : $"\nDaño: {datos.daño:0.#} · Alcance: {datos.rango:0.#}\nAtaque cada {datos.tiempoEntreAtaques:0.##} s"
+                + (datos.ralentizacionImpacto > 0 ? $"\nRalentiza {datos.ralentizacionImpacto:0.#}% por {datos.duracionRalentizacion:0.#} s" : string.Empty)
+                + (datos.tipoAtaque == TowerAttackType.Area ? $"\nÁrea: {datos.radioArea:0.#} · objetivos: {datos.cantidadObjetivos}" : string.Empty);
+        detalle.Mostrar(carta.Nombre, rol + atributos
             + "\n" + (carta.Comprada ? "Comprada · colocar" : colocador.ObtenerPrecio(carta) + " engranajes"));
         detalle.transform.Find("Estado").gameObject.SetActive(false);
     }

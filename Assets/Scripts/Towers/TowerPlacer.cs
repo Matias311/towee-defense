@@ -17,6 +17,8 @@ public class TowerPlacer : MonoBehaviour
     public List<TowerPrefabEntry> torresDisponibles = new List<TowerPrefabEntry>();
     [Tooltip("Estadisticas que usaran automaticamente todas las torretas colocadas")]
     public TowerStatsData estadisticasTorre;
+    [Tooltip("Bots con huesos por rareza. Si está vacío, carga AparienciasTorretas de Resources.")]
+    public AparienciasTorretas apariencias;
 
     [Header("Probabilidades y bonos de las torretas")]
     [Tooltip("Porcentajes relativos normalizados. Las reglas de primera recompensa, variedad y anti repetición filtran los tipos elegibles.")]
@@ -176,16 +178,20 @@ public class TowerPlacer : MonoBehaviour
             return false;
         }
 
-        List<GameObject> candidatas = ObtenerCandidatas();
-        GameObject torre = SeleccionarTorrePonderada(candidatas);
-        if (torre == null) return false;
-
-        TowerType tipo = ObtenerTipoTorre(torre);
-        tiposObtenidos.Add(tipo);
-        tiposRecientes.Add(tipo);
         RarezaCarta rareza = torresObtenidas == 0 ? RarezaCarta.Normal
             : balanceTorretas.SortearRareza(waveActual, UnityEngine.Random.value);
-        inventarioTorres.Add(new CartaTorreta(torre, tipo, rareza, balanceTorretas.bonosDanio.Multiplicador(rareza), preciosTorretas.Obtener(rareza)));
+        TowerType tipo = TipoCombatePorRareza(rareza);
+        GameObject torre = PrefabParaTipo(tipo);
+        if (torre == null)
+        {
+            Debug.LogError($"[TOWER] Falta configurar un prefab de tipo {tipo} para la rareza {rareza}.");
+            return false;
+        }
+
+        tiposObtenidos.Add(tipo);
+        tiposRecientes.Add(tipo);
+        // El perfil de combate ya está definido por el asset de esta rareza.
+        inventarioTorres.Add(new CartaTorreta(torre, tipo, rareza, 1f, preciosTorretas.Obtener(rareza)));
         torresEnInventario = inventarioTorres.Count;
         while (tiposRecientes.Count > Mathf.Max(0, recompensasAntiRepeticion))
         {
@@ -195,6 +201,24 @@ public class TowerPlacer : MonoBehaviour
         torresObtenidas++;
         AlCambiarCartas?.Invoke();
         return true;
+    }
+
+    static TowerType TipoCombatePorRareza(RarezaCarta rareza)
+    {
+        switch (rareza)
+        {
+            case RarezaCarta.Rara: return TowerType.Ametralladora;
+            case RarezaCarta.Epica: return TowerType.Francotirador;
+            case RarezaCarta.Legendaria: return TowerType.Canon;
+            default: return TowerType.Basica;
+        }
+    }
+
+    GameObject PrefabParaTipo(TowerType tipo)
+    {
+        foreach (TowerPrefabEntry entrada in torresDisponibles)
+            if (entrada != null && entrada.prefab != null && entrada.tipo == tipo) return entrada.prefab;
+        return null;
     }
 
     List<GameObject> ObtenerCandidatas()
@@ -339,7 +363,7 @@ public class TowerPlacer : MonoBehaviour
         torreSeleccionada = carta.Prefab;
         previewSobreTerreno = false;
         colocando = true;
-        previewTorre = Instantiate(torreSeleccionada);
+        previewTorre = CrearModeloSeleccionado();
         previewTorre.SetActive(true);
         foreach (TowerAttackController ataque in previewTorre.GetComponentsInChildren<TowerAttackController>())
         {
@@ -372,6 +396,18 @@ public class TowerPlacer : MonoBehaviour
                 return;
             }
         camaraPrincipal = Camera.main;
+    }
+
+    private GameObject CrearModeloSeleccionado()
+    {
+        if (apariencias == null) apariencias = Resources.Load<AparienciasTorretas>("AparienciasTorretas");
+        if (apariencias != null && CartaSeleccionada != null)
+        {
+            GameObject bot = apariencias.Crear(CartaSeleccionada.Rareza, CartaSeleccionada.Nombre);
+            if (bot != null) return bot;
+            Debug.LogError("Falta el bot de rareza " + CartaSeleccionada.Rareza + " en AparienciasTorretas.", this);
+        }
+        return Instantiate(torreSeleccionada);
     }
 
     void ActualizarPreview()
@@ -464,6 +500,8 @@ public class TowerPlacer : MonoBehaviour
 
     void PintarPreview(bool valido)
     {
+        foreach (SpriteRenderer parte in previewTorre.GetComponentsInChildren<SpriteRenderer>())
+            parte.color = valido ? new Color(.55f, 1, .55f, .7f) : new Color(1, .35f, .35f, .7f);
         Renderer rend = previewTorre.GetComponent<Renderer>();
         if (rend == null) return;
 
@@ -491,11 +529,8 @@ public class TowerPlacer : MonoBehaviour
         }
 
         // Confirmar colocacion: instanciar la torreta real
-        GameObject torre = Instantiate(
-            torreSeleccionada,
-            previewTorre.transform.position,
-            previewTorre.transform.rotation
-        );
+        GameObject torre = CrearModeloSeleccionado();
+        torre.transform.SetPositionAndRotation(previewTorre.transform.position, previewTorre.transform.rotation);
         torre.SetActive(true);
         TowerStats estadisticas = torre.GetComponent<TowerStats>();
         if (estadisticas == null)
@@ -554,6 +589,9 @@ public class TowerPlacer : MonoBehaviour
 
         return estadisticasTorre;
     }
+
+    public TowerStatsData EstadisticasDe(CartaTorreta carta) =>
+        carta != null ? ObtenerEstadisticasTorre(carta.Prefab) : null;
 
     Quaternion ObtenerRotacionHaciaCamino(Vector3 posicionTorre)
     {

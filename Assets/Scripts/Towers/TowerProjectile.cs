@@ -24,6 +24,10 @@ public class TowerProjectile : MonoBehaviour
     private float velocidad;
     private float tiempoVida = 8f;
     private Quaternion rotacionVisualLocal = Quaternion.identity;
+    private float ralentizacionImpacto;
+    private float duracionRalentizacion;
+    private TowerType tipoTorre = TowerType.Basica;
+    private Vector3 origenDisparo;
 
     void Awake()
     {
@@ -46,7 +50,11 @@ public class TowerProjectile : MonoBehaviour
         float radioAreaInicial,
         int cantidadObjetivosInicial,
         float velocidadInicial,
-        PerfilImpactoPasiva perfil = default
+        PerfilImpactoPasiva perfil = default,
+        float porcentajeRalentizacion = 0f,
+        float duracionRalentizacion = 0f,
+        TowerType tipo = TowerType.Basica,
+        Vector3 origen = default
     )
     {
         rotacionVisualLocal = transform.localRotation;
@@ -54,11 +62,23 @@ public class TowerProjectile : MonoBehaviour
         tiempoVida = 8f;
         daño = dañoInicial;
         perfilPasiva = perfil;
+        ralentizacionImpacto = porcentajeRalentizacion;
+        this.duracionRalentizacion = duracionRalentizacion;
+        tipoTorre = tipo;
+        origenDisparo = origen;
         radioArea = Mathf.Max(0f, radioAreaInicial);
         cantidadObjetivos = Mathf.Max(1, cantidadObjetivosInicial);
         velocidad = Mathf.Max(0.1f, velocidadInicial);
+        Color colorDisparo = tipo == TowerType.Ametralladora ? new Color(0.22f, 0.95f, 1f)
+            : tipo == TowerType.Francotirador ? new Color(1f, 0.88f, 0.35f)
+            : colorEstela;
+        if (sprite != null) sprite.color = colorDisparo;
         if (mostrarEstela && GetComponentInChildren<TrailRenderer>() == null)
-            TowerShotTrail.Crear(transform, colorEstela, anchoEstela, duracionEstela);
+        {
+            float ancho = tipo == TowerType.Ametralladora ? anchoEstela * 1.25f : anchoEstela;
+            float estela = tipo == TowerType.Ametralladora ? duracionEstela * 1.7f : duracionEstela * 1.25f;
+            TowerShotTrail.Crear(transform, colorDisparo, ancho, estela);
+        }
         // Dar tiempo al proyectil para alcanzar objetivos lejanos sin alterar su velocidad configurada.
         if (objetivo != null) tiempoVida = Mathf.Max(8f,
             Vector3.Distance(transform.position, ObtenerPosicionObjetivo(objetivo)) / velocidad + 2f);
@@ -148,10 +168,10 @@ public class TowerProjectile : MonoBehaviour
         float separacionVisual = colisionObjetivo != null
             ? colisionObjetivo.bounds.extents.magnitude + 0.1f
             : visualObjetivo != null ? visualObjetivo.bounds.extents.magnitude + 0.1f : 0.3f;
-        TowerImpactVisual.Mostrar(posicionImpacto, radioArea, separacionVisual);
+        TowerImpactVisual.Mostrar(posicionImpacto, radioArea, separacionVisual, tipoTorre, origenDisparo);
         if (radioArea <= 0f)
         {
-            SistemaPasivas.AplicarImpacto(objetivo, daño, perfilPasiva, true);
+            AplicarImpacto(objetivo);
             Destroy(gameObject);
             return;
         }
@@ -159,7 +179,7 @@ public class TowerProjectile : MonoBehaviour
         Collider[] colisiones = Physics.OverlapSphere(posicionImpacto, radioArea);
         HashSet<EnemyStats> objetivos = new HashSet<EnemyStats>();
         objetivos.Add(objetivo);
-        SistemaPasivas.AplicarImpacto(objetivo, daño, perfilPasiva, true);
+        AplicarImpacto(objetivo);
         int afectados = 1;
         foreach (Collider colision in colisiones)
         {
@@ -174,11 +194,19 @@ public class TowerProjectile : MonoBehaviour
         {
             if (afectados >= cantidadObjetivos) break;
             if (enemigo == objetivo) continue;
-            SistemaPasivas.AplicarImpacto(enemigo, daño, perfilPasiva, true);
+            AplicarImpacto(enemigo);
             afectados++;
             if (afectados >= cantidadObjetivos) break;
         }
 
         Destroy(gameObject);
+    }
+
+    void AplicarImpacto(EnemyStats enemigo)
+    {
+        if (!SistemaPasivas.AplicarImpactoConResultado(enemigo, daño, perfilPasiva, true)) return;
+        if (ralentizacionImpacto <= 0f) return;
+        EnemyMovement movimiento = enemigo.GetComponent<EnemyMovement>();
+        if (movimiento != null) movimiento.AplicarRalentizacion(ralentizacionImpacto, duracionRalentizacion);
     }
 }

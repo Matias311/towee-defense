@@ -27,6 +27,15 @@ public class EnemyMovement : MonoBehaviour
     [Tooltip("Multiplica el daño del enemigo al llegar a la casa.")]
     public float multiplicadorDañoCasa = 1f;
     private bool llegadaRegistrada;
+    private float ralentizacionRestante;
+    private float velocidadRalentizada = 1f;
+
+    public void AplicarRalentizacion(float porcentaje, float duracion)
+    {
+        if (porcentaje <= 0f || duracion <= 0f) return;
+        velocidadRalentizada = Mathf.Min(velocidadRalentizada, 1f - Mathf.Clamp(porcentaje, 0f, 95f) / 100f);
+        ralentizacionRestante = Mathf.Max(ralentizacionRestante, duracion);
+    }
 
     // Indice del waypoint actual al que el enemigo se dirige
     private int indiceActual = 0;
@@ -43,6 +52,11 @@ public class EnemyMovement : MonoBehaviour
     // Método Update se llama una vez por frame
     void Update()
     {
+        if (ralentizacionRestante > 0f)
+        {
+            ralentizacionRestante -= Time.deltaTime;
+            if (ralentizacionRestante <= 0f) velocidadRalentizada = 1f;
+        }
         if (waypoints.Count == 0) return;
 
         // Si ya llego al ultimo waypoint
@@ -59,7 +73,7 @@ public class EnemyMovement : MonoBehaviour
         transform.position = Vector3.MoveTowards(
             transform.position,
             objetivo.position,
-            speed * SistemaPasivas.MultiplicadorVelocidadEnemigos * Time.deltaTime
+            speed * SistemaPasivas.MultiplicadorVelocidadEnemigos * velocidadRalentizada * Time.deltaTime
         );
 
         // Rotar el objeto para que "mire" hacia donde va

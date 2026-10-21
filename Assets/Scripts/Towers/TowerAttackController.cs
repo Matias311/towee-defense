@@ -48,13 +48,14 @@ public class TowerAttackController : MonoBehaviour {
                 : visual != null ? visual.bounds.center : objetivo.transform.position;
             float separacion = colision != null ? colision.bounds.extents.magnitude + 0.1f
                 : visual != null ? visual.bounds.extents.magnitude + 0.1f : 0.3f;
-            TowerImpactVisual.Mostrar(centro, 0f, separacion);
+            TowerImpactVisual.Mostrar(centro, 0f, separacion, estadisticas.tipo, transform.position);
         }
-        SistemaPasivas.AplicarImpacto(objetivo, new DamageData(
+        bool impacto = SistemaPasivas.AplicarImpactoConResultado(objetivo, new DamageData(
             estadisticas.daño,
             DamageType.Fisico,
             estadisticas.penetracion
         ), SistemaPasivas.Perfil(estadisticas.tipo));
+        if (impacto) AplicarRalentizacion(objetivo);
     }
 
     void AtacarEnArea(Vector3 posicionImpacto) {
@@ -78,7 +79,16 @@ public class TowerAttackController : MonoBehaviour {
             afectados++;
             if (afectados >= estadisticas.cantidadObjetivos) break;
         }
-        if (afectados > 0) TowerImpactVisual.Mostrar(posicionImpacto, estadisticas.radioArea);
+        if (afectados > 0)
+            TowerImpactVisual.Mostrar(posicionImpacto, estadisticas.radioArea, 0.25f, estadisticas.tipo, transform.position);
+    }
+
+    void AplicarRalentizacion(EnemyStats enemigo)
+    {
+        if (estadisticas.ralentizacionImpacto <= 0f || enemigo == null) return;
+        EnemyMovement movimiento = enemigo.GetComponent<EnemyMovement>();
+        if (movimiento != null)
+            movimiento.AplicarRalentizacion(estadisticas.ralentizacionImpacto, estadisticas.duracionRalentizacion);
     }
 
     void LanzarProyectil(EnemyStats objetivo) {
@@ -105,7 +115,11 @@ public class TowerAttackController : MonoBehaviour {
                 : 0f,
             estadisticas.cantidadObjetivos,
             estadisticas.velocidadProyectil,
-            SistemaPasivas.Perfil(estadisticas.tipo)
+            SistemaPasivas.Perfil(estadisticas.tipo),
+            estadisticas.ralentizacionImpacto,
+            estadisticas.duracionRalentizacion,
+            estadisticas.tipo,
+            ObtenerPosicionDisparo()
         );
     }
 

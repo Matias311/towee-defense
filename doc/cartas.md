@@ -190,3 +190,15 @@ WebP y los PNG importables por Unity para las cuatro rarezas. La fábrica
 `Assets/Data/Cartas/FabricaPasivas.asset` usa estos diseños y una disposición de
 texto propia. Las torretas conservan su fábrica anterior. El arte nuevo del
 puntero está en `InterfazAlta/manecilla.png`, conectado en las cuatro etapas.
+
+
+### Bots de torretas
+
+Las cartas de torretas usan los nuevos diseños de `CartasTorres/*Bot.png`.
+`Assets/Resources/AparienciasTorretas.asset` enlaza los PSB completos de
+`Assets/Personajes_con_huesos`: CommonBot (normal), UncommonBot (rara), RareBot
+(épica) y LegendaryBot (legendaria). Se conserva la jerarquía de sprites/huesos,
+se normaliza su altura y se orientan hacia la cámara. La previsualización y la
+torre colocada usan el mismo modelo según la rareza. El tipo de combate de la
+oferta conserva las estadísticas de `Assets/Data/Torretas`, independientemente
+del aspecto. La altura visual es editable en el catálogo de apariencias.

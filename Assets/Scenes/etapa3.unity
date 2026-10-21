@@ -3632,14 +3632,17 @@ MonoBehaviour:
   torresDisponibles:
   - tipo: 0
     prefab: {fileID: 919132149155446097, guid: 5a0fc9626fb844761bdaba7fee7106e9, type: 3}
-    estadisticas: {fileID: 11400000, guid: b56db9572560a4257b9f62739ec5f313, type: 2}
-  - tipo: 0
+    estadisticas: {fileID: 11400000, guid: f9fb33706d4d4bdf80ee4a2dbf255c9f, type: 2}
+  - tipo: 2
     prefab: {fileID: 919132149155446097, guid: a31a3aa36dffc426583221e384de654f, type: 3}
-    estadisticas: {fileID: 11400000, guid: b56db9572560a4257b9f62739ec5f313, type: 2}
-  - tipo: 0
+    estadisticas: {fileID: 11400000, guid: e56c3706cca34baabc840f787511cdf6, type: 2}
+  - tipo: 1
     prefab: {fileID: 919132149155446097, guid: 77416d5e63cad485facdae25bb6d77e0, type: 3}
-    estadisticas: {fileID: 11400000, guid: b56db9572560a4257b9f62739ec5f313, type: 2}
-  estadisticasTorre: {fileID: 11400000, guid: b56db9572560a4257b9f62739ec5f313, type: 2}
+    estadisticas: {fileID: 11400000, guid: 721ef92b239d444fae848ae96059b343, type: 2}
+  - tipo: 3
+    prefab: {fileID: 919132149155446097, guid: 100d62c27cd9e43e9b1e7035f5b02397, type: 3}
+    estadisticas: {fileID: 11400000, guid: 35b582dc67dd44b8b5019e7d220d761e, type: 2}
+  estadisticasTorre: {fileID: 11400000, guid: f9fb33706d4d4bdf80ee4a2dbf255c9f, type: 2}
   puntosPorTorre: 24
   torresIniciales: 3
   puntosActuales: 0
@@ -3658,6 +3661,7 @@ MonoBehaviour:
   materialValido: {fileID: 0}
   materialInvalido: {fileID: 0}
   activarAlIniciar: 1
+  apariencias: {fileID: 11400000, guid: 06025ef5efda4c1aa1b2bf1e81054cff, type: 2}
 --- !u!4 &560326513
 Transform:
   m_ObjectHideFlags: 0
@@ -7587,43 +7591,43 @@ MonoBehaviour:
     prefab: {fileID: 6504764155108374673, guid: 505b6c1985b387d4d921f2b12c4f3bd1, type: 3}
     baseProbability: 0
     probabilidadActual: 0
-    estadisticas: {fileID: 0}
+    estadisticas: {fileID: 11400000, guid: 226718f32979499cbf59902ee5b74909, type: 2}
     "multiplicadorDa\xF1oCasa": 1
   - type: 1
     prefab: {fileID: 655450406672987453, guid: bbafcda42fc8c3b4f860d5b8d9b2b2ca, type: 3}
     baseProbability: 0
     probabilidadActual: 0
-    estadisticas: {fileID: 0}
+    estadisticas: {fileID: 11400000, guid: 52c0357414364403b8d662d0aee40a90, type: 2}
     "multiplicadorDa\xF1oCasa": 1
   - type: 2
     prefab: {fileID: 1543284558968720769, guid: e0ff4707dbd5459499a88023d1dc2b9b, type: 3}
     baseProbability: 0
     probabilidadActual: 0
-    estadisticas: {fileID: 0}
+    estadisticas: {fileID: 11400000, guid: 540b1d4e0e194a448d20e620644cff44, type: 2}
     "multiplicadorDa\xF1oCasa": 1
   - type: 3
     prefab: {fileID: 6450804038354463610, guid: ecbac1f1725f1994bae0c65114f947ea, type: 3}
     baseProbability: 0
     probabilidadActual: 0
-    estadisticas: {fileID: 0}
+    estadisticas: {fileID: 11400000, guid: 4e578baf2ab74fe9826128e088de5c17, type: 2}
     "multiplicadorDa\xF1oCasa": 1
   - type: 4
     prefab: {fileID: 2673051912191061337, guid: 797e7438d8fa57f448847c8879250d17, type: 3}
     baseProbability: 0
     probabilidadActual: 0
-    estadisticas: {fileID: 0}
+    estadisticas: {fileID: 11400000, guid: 4fc40b0c38804f2d83213d7f097d1c1d, type: 2}
     "multiplicadorDa\xF1oCasa": 1
   - type: 5
     prefab: {fileID: 7321250219957679058, guid: adc1eaf95d913ac4eb8036a4112a4375, type: 3}
     baseProbability: 0
     probabilidadActual: 0
-    estadisticas: {fileID: 0}
+    estadisticas: {fileID: 11400000, guid: 9b3d36f58b2a453c8ded89311c627b8d, type: 2}
     "multiplicadorDa\xF1oCasa": 1
   - type: 6
     prefab: {fileID: 8230559991850308285, guid: 856b9e353a141c444a8a4771caa80d0d, type: 3}
     baseProbability: 0
     probabilidadActual: 0
-    estadisticas: {fileID: 0}
+    estadisticas: {fileID: 11400000, guid: 2ab84cfd73714592935c70f08ab62f18, type: 2}
     "multiplicadorDa\xF1oCasa": 1
   waypoints:
   - {fileID: 876896163}
@@ -7644,9 +7648,9 @@ MonoBehaviour:
   enemigosPorOleada: 15
   tiempoInicial: 2
   tiempoEntreOleadas: 10
-  velocidadInicial: 10
-  incrementoVelocidad: 0.05
-  velocidadMaxima: 20
+  velocidadInicial: 3
+  incrementoVelocidad: 0.02
+  velocidadMaxima: 6
   incrementoVelocidadInicialPorOleada: 0.25
   incrementoVelocidadMaximaPorOleada: 0.5
   incrementoIncrementoVelocidadPorOleada: 0.01
