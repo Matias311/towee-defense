@@ -26,6 +26,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Etapas.unity
     guid: 12c2b9ad1fdd54549a0169f5e00bbb10
+  - enabled: 1
+    path: Assets/Scenes/Historia.unity
+    guid: 64497ace70c7beb41a536975d710b1ce
   m_configObjects:
     com.unity.dt.app-ui: {fileID: 11400000, guid: 1b1c20d82303e4b5781c3ef50ac1449f, type: 2}
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
