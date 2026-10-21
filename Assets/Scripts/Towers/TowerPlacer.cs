@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System;
 using UnityEngine;
 
 [System.Serializable]
@@ -6,33 +7,36 @@ public class TowerPrefabEntry
 {
     public TowerType tipo = TowerType.Basica;
     public GameObject prefab;
-    [Tooltip("Estadisticas propias de esta torre. Si queda vacio, usa las estadisticas globales.")]
+    [Tooltip("Estadisticas propias de esta torreta. Si queda vacio, usa las estadisticas globales.")]
     public TowerStatsData estadisticas;
 }
 
 public class TowerPlacer : MonoBehaviour
 {
-    [Tooltip("Tipos de torres posibles como recompensa")]
+    [Tooltip("Modelos posibles en las ofertas de la tienda")]
     public List<TowerPrefabEntry> torresDisponibles = new List<TowerPrefabEntry>();
-    [Tooltip("Estadisticas que usaran automaticamente todas las torres colocadas")]
+    [Tooltip("Estadisticas que usaran automaticamente todas las torretas colocadas")]
     public TowerStatsData estadisticasTorre;
 
-    [Header("Recompensas")]
-    [Tooltip("Puntos necesarios para obtener una torre aleatoria")]
-    public int puntosPorTorre = 24;
-    [Tooltip("Cantidad de torres aleatorias entregadas al comenzar la partida")]
-    [Range(0, 3)]
-    public int torresIniciales = 3;
-    public int puntosActuales;
+    [Header("Probabilidades y bonos de las torretas")]
+    [Tooltip("Porcentajes relativos normalizados. Las reglas de primera recompensa, variedad y anti repetición filtran los tipos elegibles.")]
+    public ConfiguracionTorretas balanceTorretas = new ConfiguracionTorretas();
+
+    [Header("Tienda y engranajes")]
+    public PreciosTorretas preciosTorretas = new PreciosTorretas();
+    [Tooltip("Saldo mínimo inicial. Al comenzar se asegura el costo de las tres ofertas más baratas.")]
+    public int puntosActuales = 150;
+    [Range(0, 100), Tooltip("Porcentaje del precio efectivamente pagado que devuelve vender con V.")]
+    public float porcentajeDevolucionVenta = 50;
     public int torresObtenidas;
     public int torresEnInventario;
-    [Tooltip("Cantidad de recompensas recientes en las que una torre no puede repetirse")]
+    [Tooltip("Cantidad de recompensas recientes en las que una torreta no puede repetirse")]
     public int recompensasAntiRepeticion = 2;
-    [Tooltip("Wave actual usada para ajustar el azar de las torres")]
+    [Tooltip("Wave actual usada para ajustar el azar de las torretas")]
     public int waveActual = 1;
 
     [Header("Validacion")]
-    [Tooltip("Radio de espacio libre que necesita la torre para poder colocarse")]
+    [Tooltip("Radio de espacio libre que necesita la torreta para poder colocarse")]
     public float radioValidacion = 1f;
 
     [Tooltip("Capas que bloquean la colocacion (camino y estructuras)")]
@@ -52,14 +56,25 @@ public class TowerPlacer : MonoBehaviour
     public Material materialValido;
     public Material materialInvalido;
 
-    [Header("Modo de prueba")]
-    [Tooltip("Si esta tildado, el modo colocacion arranca activo apenas empieza el juego, sin necesitar boton de UI")]
-    public bool activarAlIniciar = true;
-
     private GameObject previewTorre;
     private bool colocando = false;
     private GameObject torreSeleccionada;
-    private readonly List<GameObject> inventarioTorres = new List<GameObject>();
+    private readonly List<CartaTorreta> inventarioTorres = new List<CartaTorreta>();
+    public IReadOnlyList<CartaTorreta> Cartas => inventarioTorres;
+    public const int MaximoCartasVisibles = 4;
+    public int CantidadCartasVisibles => Mathf.Min(MaximoCartasVisibles, inventarioTorres.Count);
+
+    public bool EsCartaVisible(CartaTorreta carta)
+    {
+        int indice = inventarioTorres.IndexOf(carta);
+        return indice >= 0 && indice < CantidadCartasVisibles;
+    }
+    public CartaTorreta CartaSeleccionada { get; private set; }
+    public event Action AlCambiarCartas;
+    public event Action<int> AlCambiarPuntos;
+    private bool previewSobreTerreno;
+    private int ultimoFrameCancelacion = -1;
+    private int ultimoFrameSeleccion = -1;
     private readonly List<TowerType> tiposObtenidos = new List<TowerType>();
     private readonly List<TowerType> tiposRecientes = new List<TowerType>();
     private readonly Dictionary<GameObject, TowerType> tiposPorPrefab = new Dictionary<GameObject, TowerType>();
@@ -70,20 +85,27 @@ public class TowerPlacer : MonoBehaviour
     {
         ConstruirMapaDeTipos();
 
-        for (int i = 0; i < torresIniciales; i++)
-        {
-            ObtenerTorreAleatoria();
-        }
+        ReponerOfertas();
+        // Financiar tres de las ofertas reales, aunque tengan rarezas distintas.
+        puntosActuales = Mathf.Max(puntosActuales, CostoInicialTresTorretas(inventarioTorres));
+        AlCambiarPuntos?.Invoke(puntosActuales);
 
         if (camaraPrincipal == null)
         {
             camaraPrincipal = Camera.main;
         }
 
-        if (activarAlIniciar)
-        {
-            EmpezarColocacion();
-        }
+        AlCambiarCartas?.Invoke();
+    }
+
+    public static int CostoInicialTresTorretas(IReadOnlyList<CartaTorreta> ofertas)
+    {
+        var precios = new List<int>();
+        foreach (var oferta in ofertas) precios.Add(oferta.Precio);
+        precios.Sort();
+        int total = 0;
+        for (int i = 0; i < Mathf.Min(3, precios.Count); i++) total += precios[i];
+        return total;
     }
 
     void ConstruirMapaDeTipos()
@@ -103,14 +125,29 @@ public class TowerPlacer : MonoBehaviour
 
     public void RegistrarPuntos(int puntos)
     {
-        if (puntos <= 0 || puntosPorTorre <= 0) return;
-
+        if (puntos <= 0) return;
         puntosActuales += puntos;
-        while (puntosActuales >= puntosPorTorre)
-        {
-            puntosActuales -= puntosPorTorre;
-            ObtenerTorreAleatoria();
-        }
+        AlCambiarPuntos?.Invoke(puntosActuales);
+    }
+
+    public int ObtenerPrecio(CartaTorreta carta) => carta.Comprada ? carta.PrecioPagado
+        : carta.Precio * SistemaPasivas.Eventos.MultiplicadorPrecio;
+
+    public void RefrescarTienda() => AlCambiarCartas?.Invoke();
+
+    public int CotizarVenta(TorreColocada torre) => SistemaPasivas.Eventos.VentaSinDevolucion ? 0
+        : Mathf.FloorToInt(torre.PrecioPagado * porcentajeDevolucionVenta / 100f);
+
+    public bool IntentarVender(TorreColocada torre)
+    {
+        if (torre == null || torre.Colocador != this || !torre.isActiveAndEnabled
+            || Time.timeScale == 0 || BloqueoEntradaUI.BloqueaColocacion() || !torre.MarcarVendida()) return false;
+        int devolver = SistemaPasivas.Eventos.DevolucionVenta(torre.PrecioPagado, porcentajeDevolucionVenta, UnityEngine.Random.value);
+        SistemaPasivas.RetirarTorre(torre);
+        torre.gameObject.SetActive(false);
+        Destroy(torre.gameObject);
+        if (devolver > 0) RegistrarPuntos(devolver);
+        return true;
     }
 
     public void ActualizarWave(int wave)
@@ -118,34 +155,39 @@ public class TowerPlacer : MonoBehaviour
         waveActual = Mathf.Max(1, wave);
     }
 
-    void ObtenerTorreAleatoria()
+    void ReponerOfertas()
+    {
+        while (inventarioTorres.Count < MaximoCartasVisibles)
+            if (!CrearOfertaAleatoria()) break;
+    }
+
+    bool CrearOfertaAleatoria()
     {
         if (tiposPorPrefab.Count == 0)
         {
-            Debug.LogWarning("[TOWER] No hay torres disponibles para entregar.");
-            return;
+            Debug.LogWarning("[TOWER] No hay torretas disponibles para vender.");
+            return false;
         }
 
         List<GameObject> candidatas = ObtenerCandidatas();
         GameObject torre = SeleccionarTorrePonderada(candidatas);
-        if (torre == null) return;
+        if (torre == null) return false;
 
         TowerType tipo = ObtenerTipoTorre(torre);
         tiposObtenidos.Add(tipo);
         tiposRecientes.Add(tipo);
-        inventarioTorres.Add(torre);
+        RarezaCarta rareza = torresObtenidas == 0 ? RarezaCarta.Normal
+            : balanceTorretas.SortearRareza(waveActual, UnityEngine.Random.value);
+        inventarioTorres.Add(new CartaTorreta(torre, tipo, rareza, balanceTorretas.bonosDanio.Multiplicador(rareza), preciosTorretas.Obtener(rareza)));
         torresEnInventario = inventarioTorres.Count;
-        while (tiposRecientes.Count > recompensasAntiRepeticion)
+        while (tiposRecientes.Count > Mathf.Max(0, recompensasAntiRepeticion))
         {
             tiposRecientes.RemoveAt(0);
         }
 
         torresObtenidas++;
-        Debug.Log($"[TOWER] Torre obtenida: {torre.name}. Total: {torresObtenidas}. En inventario: {torresEnInventario}");
-        if (!colocando)
-        {
-            EmpezarColocacion();
-        }
+        AlCambiarCartas?.Invoke();
+        return true;
     }
 
     List<GameObject> ObtenerCandidatas()
@@ -153,7 +195,7 @@ public class TowerPlacer : MonoBehaviour
         List<TowerType> faltantes = new List<TowerType>();
         foreach (TowerPrefabEntry entrada in torresDisponibles)
         {
-            if (entrada == null || entrada.prefab == null) continue;
+            if (entrada == null || entrada.prefab == null || ObtenerPesoTorre(entrada.prefab) <= 0) continue;
             if (!tiposObtenidos.Contains(entrada.tipo) && !faltantes.Contains(entrada.tipo))
             {
                 faltantes.Add(entrada.tipo);
@@ -165,7 +207,7 @@ public class TowerPlacer : MonoBehaviour
             List<GameObject> garantizadas = new List<GameObject>();
             foreach (TowerPrefabEntry entrada in torresDisponibles)
             {
-                if (entrada != null && entrada.prefab != null && faltantes.Contains(entrada.tipo))
+                if (entrada != null && entrada.prefab != null && ObtenerPesoTorre(entrada.prefab) > 0 && faltantes.Contains(entrada.tipo))
                 {
                     garantizadas.Add(entrada.prefab);
                 }
@@ -178,7 +220,7 @@ public class TowerPlacer : MonoBehaviour
             List<GameObject> iniciales = new List<GameObject>();
             foreach (TowerPrefabEntry entrada in torresDisponibles)
             {
-                if (entrada != null && entrada.prefab != null
+                if (entrada != null && entrada.prefab != null && ObtenerPesoTorre(entrada.prefab) > 0
                     && (entrada.tipo == TowerType.Basica || entrada.tipo == TowerType.Ametralladora))
                 {
                     iniciales.Add(entrada.prefab);
@@ -190,7 +232,7 @@ public class TowerPlacer : MonoBehaviour
         List<GameObject> disponibles = new List<GameObject>();
         foreach (TowerPrefabEntry entrada in torresDisponibles)
         {
-            if (entrada != null && entrada.prefab != null)
+            if (entrada != null && entrada.prefab != null && ObtenerPesoTorre(entrada.prefab) > 0)
             {
                 disponibles.Add(entrada.prefab);
             }
@@ -200,56 +242,24 @@ public class TowerPlacer : MonoBehaviour
 
     GameObject SeleccionarTorrePonderada(List<GameObject> candidatas)
     {
+        var conPeso = candidatas.FindAll(t => t != null && ObtenerPesoTorre(t) > 0);
+        var elegibles = conPeso.FindAll(t => !tiposRecientes.Contains(ObtenerTipoTorre(t)));
+        if (elegibles.Count == 0) elegibles = conPeso;
         float total = 0f;
-        foreach (GameObject torre in candidatas)
-        {
-            if (torre == null || tiposRecientes.Contains(ObtenerTipoTorre(torre))) continue;
-            total += ObtenerPesoTorre(torre);
-        }
-
-        if (total <= 0f)
-        {
-            foreach (GameObject torre in candidatas)
-            {
-                if (torre != null) total += ObtenerPesoTorre(torre);
-            }
-        }
-
+        foreach (var torre in elegibles) total += ObtenerPesoTorre(torre);
         if (total <= 0f) return null;
-
-        float valor = Random.value * total;
-        foreach (GameObject torre in candidatas)
+        float valor = UnityEngine.Random.value * total;
+        foreach (var torre in elegibles)
         {
-            if (torre == null || tiposRecientes.Contains(ObtenerTipoTorre(torre))) continue;
             valor -= ObtenerPesoTorre(torre);
-            if (valor <= 0f) return torre;
+            if (valor < 0f) return torre;
         }
-
-        for (int i = candidatas.Count - 1; i >= 0; i--)
-        {
-            if (candidatas[i] != null) return candidatas[i];
-        }
-
-        return null;
+        return elegibles[elegibles.Count - 1];
     }
 
     float ObtenerPesoTorre(GameObject torre)
     {
-        TowerType tipo = ObtenerTipoTorre(torre);
-        float progreso = Mathf.Clamp01((waveActual - 1) / 14f);
-
-        switch (tipo)
-        {
-            case TowerType.Basica:
-                return Mathf.Lerp(40f, 15f, progreso);
-            case TowerType.Ametralladora:
-                return Mathf.Lerp(30f, 20f, progreso);
-            case TowerType.Francotirador:
-            case TowerType.Canon:
-                return Mathf.Lerp(15f, 32.5f, progreso);
-            default:
-                return 1f;
-        }
+        return balanceTorretas.PesoTipo(ObtenerTipoTorre(torre), waveActual);
     }
 
     TowerType ObtenerTipoTorre(GameObject torre)
@@ -287,6 +297,7 @@ public class TowerPlacer : MonoBehaviour
                 return;
 
             ActualizarPreview();
+            if (previewTorre != null) previewTorre.SetActive(previewSobreTerreno);
 
             if (Input.GetMouseButtonDown(0))
             {
@@ -294,7 +305,7 @@ public class TowerPlacer : MonoBehaviour
             }
 
             // Escape lo gestiona PauseMenu; cancelar con click derecho evita que
-            // abrir el menu destruya el preview de la torre seleccionada.
+            // abrir el menu destruya el preview de la torreta seleccionada.
             if (Input.GetMouseButtonDown(1))
             {
                 CancelarColocacion();
@@ -302,12 +313,24 @@ public class TowerPlacer : MonoBehaviour
         }
     }
 
-    // Llamar esta funcion desde un boton de UI para empezar a colocar una torre
+    // Compatibilidad con botones existentes: selecciona la primera carta de torreta.
     public void EmpezarColocacion()
     {
-        if (colocando || inventarioTorres.Count == 0) return;
+        if (inventarioTorres.Count > 0) SeleccionarCarta(inventarioTorres[0]);
+    }
 
-        torreSeleccionada = inventarioTorres[0];
+    public void SeleccionarCarta(CartaTorreta carta)
+    {
+        if (!isActiveAndEnabled || Time.timeScale == 0f || BloqueoEntradaUI.HayPanelAbierto
+            || carta == null || !EsCartaVisible(carta)) return;
+        bool yaComprada = carta.Comprada;
+        if (!carta.Comprar(ref puntosActuales, ObtenerPrecio(carta))) return;
+        if (!yaComprada) AlCambiarPuntos?.Invoke(puntosActuales);
+        CancelarColocacion(false);
+        CartaSeleccionada = carta;
+        ultimoFrameSeleccion = Time.frameCount;
+        torreSeleccionada = carta.Prefab;
+        previewSobreTerreno = false;
         colocando = true;
         previewTorre = Instantiate(torreSeleccionada);
         previewTorre.SetActive(true);
@@ -325,17 +348,22 @@ public class TowerPlacer : MonoBehaviour
         PrepararVisualizadorRango(previewTorre);
         previewTorre.GetComponent<TowerRangeVisualizer>().SetVisible(true);
         // Desactivar collider del preview para que no interfiera con el raycast
-        Collider col = previewTorre.GetComponent<Collider>();
-        if (col != null) col.enabled = false;
+        foreach (Collider col in previewTorre.GetComponentsInChildren<Collider>()) col.enabled = false;
+        AplicarRareza(estadisticasPreview);
+        estadisticasPreview.AgregarBonoColocacion(SistemaPasivas.Eventos.DanioPrimeraPendiente);
+        previewTorre.SetActive(false);
+        AlCambiarCartas?.Invoke();
     }
 
     void ActualizarPreview()
     {
-        if (previewTorre == null) return;
+        previewSobreTerreno = false;
+        if (previewTorre == null || camaraPrincipal == null) return;
 
         Ray ray = camaraPrincipal.ScreenPointToRay(Input.mousePosition);
         if (Physics.Raycast(ray, out RaycastHit hit, 1000f))
         {
+            previewSobreTerreno = true;
             TowerRangeVisualizer visualizador = previewTorre.GetComponent<TowerRangeVisualizer>();
             previewTorre.transform.rotation = ObtenerRotacionHaciaCamino(hit.point);
             visualizador.ColocarCentroVisualEn(hit.point);
@@ -431,7 +459,8 @@ public class TowerPlacer : MonoBehaviour
 
     void IntentarColocarTorre()
     {
-        if (BloqueoEntradaUI.BloqueaColocacion()) return;
+        if (BloqueoEntradaUI.BloqueaColocacion() || ultimoFrameSeleccion == Time.frameCount
+            || !previewSobreTerreno || CartaSeleccionada == null || !CartaSeleccionada.Comprada) return;
 
         TowerRangeVisualizer visualizador = previewTorre.GetComponent<TowerRangeVisualizer>();
         Vector3 centroTorre = visualizador.ObtenerCentroVisualWorld();
@@ -441,7 +470,7 @@ public class TowerPlacer : MonoBehaviour
             return;
         }
 
-        // Confirmar colocacion: instanciar la torre real
+        // Confirmar colocacion: instanciar la torreta real
         GameObject torre = Instantiate(
             torreSeleccionada,
             previewTorre.transform.position,
@@ -465,17 +494,20 @@ public class TowerPlacer : MonoBehaviour
         }
         estadisticas.Configurar(ObtenerEstadisticasTorre(torreSeleccionada));
         ConfigurarTipoAutomatico(torre, estadisticas);
-        inventarioTorres.RemoveAt(0);
+        AplicarRareza(estadisticas);
+        var colocada = torre.GetComponent<TorreColocada>();
+        if (colocada == null) colocada = torre.AddComponent<TorreColocada>();
+        colocada.Configurar(this, estadisticas, CartaSeleccionada.PrecioPagado);
+        inventarioTorres.Remove(CartaSeleccionada);
         torresEnInventario = inventarioTorres.Count;
 
-        // Destruir el preview actual y crear uno nuevo para seguir colocando torres
-        Destroy(previewTorre);
-        previewTorre = null;
-        colocando = false;
-        torreSeleccionada = null;
-        if (inventarioTorres.Count > 0) {
-            EmpezarColocacion();
-        }
+        CancelarColocacion();
+        ReponerOfertas();
+    }
+
+    void AplicarRareza(TowerStats estadisticas)
+    {
+        if (CartaSeleccionada != null) estadisticas.EstablecerRareza(CartaSeleccionada.MultiplicadorDanio);
     }
 
     void PrepararVisualizadorRango(GameObject torre)
@@ -550,8 +582,22 @@ public class TowerPlacer : MonoBehaviour
             * Quaternion.Euler(0f, offsetRotacionTorre, 0f);
     }
 
-    void CancelarColocacion()
+    private void OnDisable() => CancelarColocacion();
+
+    public static bool CancelarColocacionActiva()
     {
+        foreach (var colocador in FindObjectsByType<TowerPlacer>())
+        {
+            if (!colocador.colocando && colocador.ultimoFrameCancelacion != Time.frameCount) continue;
+            if (colocador.colocando) colocador.CancelarColocacion();
+            return true;
+        }
+        return false;
+    }
+
+    public void CancelarColocacion(bool notificar = true)
+    {
+        if (colocando && notificar) ultimoFrameCancelacion = Time.frameCount;
         if (previewTorre != null)
         {
             Destroy(previewTorre);
@@ -559,5 +605,8 @@ public class TowerPlacer : MonoBehaviour
         previewTorre = null;
         colocando = false;
         torreSeleccionada = null;
+        CartaSeleccionada = null;
+        previewSobreTerreno = false;
+        if (notificar) AlCambiarCartas?.Invoke();
     }
 }

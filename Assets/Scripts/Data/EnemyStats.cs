@@ -5,6 +5,8 @@ public class EnemyStats : EnemyBaseStats
     [Header("Datos base")]
     public EnemyStatsData datos;
     public EnemyType tipo;
+    public bool esMiniJefe;
+    [Min(0)] public int escudosProyectil;
 
     [Header("Estadisticas actuales")]
     public float vidaMaxima = 100f;
@@ -26,7 +28,45 @@ public class EnemyStats : EnemyBaseStats
     public GameObject prefabMaterial;
     [Range(0f, 1f)] public float probabilidadDrop = 0.3f;
 
+    public event System.Action<EnemyStats> AlMorir;
+    private bool muerteRegistrada;
     private bool configurado;
+    private bool escudoPasivaPreparado;
+    private sealed class Sangrado { public float restante, porSegundo; }
+    private readonly System.Collections.Generic.List<Sangrado> sangrados = new System.Collections.Generic.List<Sangrado>();
+
+    public void PrepararEscudoPasiva(int puntos)
+    {
+        if (escudoPasivaPreparado) return;
+        escudoPasivaPreparado = true;
+        escudosProyectil += Mathf.Max(0, puntos);
+    }
+
+    public bool ConsumirEscudoProyectil()
+    {
+        if (escudosProyectil <= 0) return false;
+        escudosProyectil--;
+        return true;
+    }
+
+    public void AplicarSangrado(float total, float duracion)
+    {
+        if (vidaActual <= 0 || total <= 0 || duracion <= 0) return;
+        sangrados.Add(new Sangrado { restante = duracion, porSegundo = total / duracion });
+    }
+
+    public void ActualizarSangrado(float delta)
+    {
+        if (delta <= 0 || vidaActual <= 0) return;
+        for (int i = sangrados.Count - 1; i >= 0; i--)
+        {
+            var sangrado = sangrados[i];
+            float paso = Mathf.Min(delta, sangrado.restante);
+            sangrado.restante -= paso;
+            RecibirDanio(new DamageData(sangrado.porSegundo * paso, DamageType.Verdadero));
+            if (sangrado.restante <= 0) sangrados.RemoveAt(i);
+        }
+    }
     private float[] dañoAlteradoAcumulado = new float[5];
     private float[] tiempoAlteradoRestante = new float[5];
 
@@ -49,6 +89,7 @@ public class EnemyStats : EnemyBaseStats
         }
 
         EnemyStatsData datosAplicados = datos;
+        if (datosAplicados != null) esMiniJefe = datosAplicados.esMiniJefe;
         float multiplicadorNivel = 1f + 0.25f * Mathf.Max(0, nivel - 1);
         float multiplicadorWave = 1f + 0.1f * Mathf.Max(0, wave - 1);
         float multiplicador = multiplicadorNivel * multiplicadorWave;
@@ -145,6 +186,7 @@ public class EnemyStats : EnemyBaseStats
 
     void Update()
     {
+        ActualizarSangrado(Time.deltaTime);
         for (int i = 0; i < dañoAlteradoAcumulado.Length; i++)
         {
             if (tiempoAlteradoRestante[i] <= 0f) continue;
@@ -159,6 +201,8 @@ public class EnemyStats : EnemyBaseStats
 
     void Morir()
     {
+        if (muerteRegistrada) return;
+        muerteRegistrada = true;
         TowerPlacer towerPlacer = FindAnyObjectByType<TowerPlacer>();
         if (towerPlacer != null)
         {
@@ -175,6 +219,9 @@ public class EnemyStats : EnemyBaseStats
             Instantiate(prefabMaterial, transform.position + Vector3.up * 0.5f, Quaternion.identity);
         }
 
+        if (AlMorir != null) Debug.Log("[PASIVAS] Muerte del boss confirmada por daño.", this);
+        SistemaPasivas.RegistrarBaja(tipo);
+        AlMorir?.Invoke(this);
         Destroy(gameObject);
     }
 

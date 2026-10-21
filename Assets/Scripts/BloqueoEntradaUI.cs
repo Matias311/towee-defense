@@ -31,6 +31,15 @@ public static class BloqueoEntradaUI
         }
     }
 
+    public static bool HayPanelAbierto
+    {
+        get
+        {
+            panelesAbiertos.RemoveWhere(panel => panel == null);
+            return panelesAbiertos.Count > 0;
+        }
+    }
+
     public static bool BloqueaColocacion()
     {
         panelesAbiertos.RemoveWhere(panel => panel == null);

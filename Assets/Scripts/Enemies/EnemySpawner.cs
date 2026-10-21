@@ -100,12 +100,14 @@ public class EnemySpawner : MonoBehaviour {
     [Range(1, 3)]
     public int nivelActual = 1;
     public int oleadaActual = 1;
+    public event System.Action<int, int> AlCambiarProgreso;
 
     private float temporizador;
     private int enemigosCreados = 0;
     private bool spawneando = false;
     private bool bossDeOleadaCuatroCreado = false;
     private bool nivelCompletado = false;
+    private int ultimaOleadaConRiesgo = -1;
 
     void Start() {
         // Asignar prefabs por defecto si no estan asignados
@@ -116,12 +118,15 @@ public class EnemySpawner : MonoBehaviour {
 
     public void IniciarNivel(int nivel) {
         nivelActual = Mathf.Clamp(nivel, 1, 3);
+        SistemaPasivas.IniciarNivel();
         oleadaActual = 1;
         enemigosCreados = 0;
         bossDeOleadaCuatroCreado = false;
+        ultimaOleadaConRiesgo = -1;
         nivelCompletado = false;
         temporizador = tiempoInicial;
         spawneando = true;
+        AlCambiarProgreso?.Invoke(nivelActual, oleadaActual);
         Debug.Log($"[SPAWNER] Nivel {nivelActual} iniciado. Enemigos por wave: {ObtenerEnemigosPorOleada()}, velocidad inicial: {ObtenerVelocidadInicial():F2}");
     }
 
@@ -359,15 +364,26 @@ public class EnemySpawner : MonoBehaviour {
     }
 
     void Update() {
+        if (Time.timeScale == 0f) return;
         if (nivelCompletado) return;
 
         if (!spawneando) return;
 
-        temporizador -= Time.deltaTime;
+        temporizador -= Time.deltaTime * SistemaPasivas.MultiplicadorFrecuencia;
 
         if (temporizador <= 0f) {
             Debug.Log($"[SPAWNER] Timer done! Oleada: {oleadaActual}, Enemies: {enemigosCreados}, spawneando: {spawneando}");
-            SpawnEnemigo();
+            if (!SpawnEnemigo())
+            {
+                temporizador = tiempoEntreEnemigos;
+                return;
+            }
+            bool primeraAparicion = ultimaOleadaConRiesgo != oleadaActual;
+            ultimaOleadaConRiesgo = oleadaActual;
+            if (PerfilImpactoPasiva.Ocurre(SistemaPasivas.ProbabilidadExtraRaro, Random.value))
+                CrearEnemigoExtra(false);
+            if (primeraAparicion && PerfilImpactoPasiva.Ocurre(SistemaPasivas.ProbabilidadEspecialOJefe, Random.value))
+                CrearEnemigoExtra(true);
 
             if (nivelCompletado) {
                 return;
@@ -385,11 +401,13 @@ public class EnemySpawner : MonoBehaviour {
                 Debug.Log("[SPAWNER] Detenido: reached cantidadEnemigos");
             } else if (modoNiveles && enemigosCreados % ObtenerEnemigosPorOleada() == 0 && enemigosCreados > 0) {
                 oleadaActual++;
-                temporizador = tiempoEntreOleadas;
+                AlCambiarProgreso?.Invoke(nivelActual, oleadaActual);
+                temporizador = SistemaPasivas.Eventos.SinDescanso ? 0 : tiempoEntreOleadas;
                 Debug.Log("[SPAWNER] Oleada avanzada a: " + oleadaActual);
             } else if (!modoNiveles && spawnInfinito && enemigosCreados % ObtenerEnemigosPorOleada() == 0 && enemigosCreados > 0) {
                 oleadaActual++;
-                temporizador = tiempoEntreOleadas;
+                AlCambiarProgreso?.Invoke(nivelActual, oleadaActual);
+                temporizador = SistemaPasivas.Eventos.SinDescanso ? 0 : tiempoEntreOleadas;
                 Debug.Log("[SPAWNER] Oleada avanzada a: " + oleadaActual);
             } else if (modoNiveles || spawnInfinito) {
                 Debug.Log($"[SPAWNER] Continuando... timer={temporizador:F1}/{tiempoEntreEnemigos:F1}");
@@ -397,10 +415,10 @@ public class EnemySpawner : MonoBehaviour {
         }
     }
 
-    void SpawnEnemigo() {
+    bool SpawnEnemigo(EnemyType? tipoForzado = null, bool adicional = false) {
             if (enemyProbabilities == null) {
                 Debug.LogError("[SPAWNER] enemyProbabilities es null!");
-                return;
+                return false;
             }
             if (enemyProbabilities.Count == 0) {
                 Debug.LogError("[SPAWNER] enemyProbabilities lista vacía! Asignando defaults...");
@@ -408,7 +426,7 @@ public class EnemySpawner : MonoBehaviour {
             }
             if (waypoints.Count == 0) {
                 Debug.LogError("[SPAWNER] waypoints lista vacía! No se pueden spawnear.");
-                return;
+                return false;
             }
 
             // Verificar si hay suficiente información para spawnear
@@ -421,15 +439,15 @@ public class EnemySpawner : MonoBehaviour {
             }
             if (!hasValidPrefabs) {
                 Debug.LogError("[SPAWNER] Ningún prefab asignado en enemyProbabilities! Arrastra los prefabs en el Inspector.");
-                return;
+                return false;
             }
 
             Debug.Log($"[SPAWN] Iniciando spawn. Oleada: {oleadaActual}, EnemiesCreated: {enemigosCreados}, ProbCount: {enemyProbabilities.Count}, Waypoints: {waypoints.Count}");
 
-            EnemyType tipoSeleccionado = SeleccionarTipoEnemigo();
+            EnemyType tipoSeleccionado = tipoForzado ?? SeleccionarTipoEnemigo();
 
             // La wave 4 tiene un unico evento de boss y limpia los enemigos anteriores.
-            bool eventoBoss = (modoNiveles || spawnInfinito)
+            bool eventoBoss = !adicional && (modoNiveles || spawnInfinito)
                 && oleadaActual == 4
                 && !bossDeOleadaCuatroCreado;
 
@@ -449,7 +467,7 @@ public class EnemySpawner : MonoBehaviour {
 
             if (prefabSeleccionado == null) {
                 Debug.LogError("[SPAWNER] prefabSeleccionado es null! Revisa que los prefabs estén asignados en enemyProbabilities.");
-                return;
+                return false;
             }
 
             // Crear una copia del prefab en la posicion del primer waypoint
@@ -505,9 +523,49 @@ public class EnemySpawner : MonoBehaviour {
                 oleadaActual,
                 datosSeleccionados
             );
+            SistemaPasivas.ConfigurarEscudo(estadisticas);
+            if (eventoBoss)
+                estadisticas.AlMorir += AlDerrotarBossDelNivel;
             Debug.Log(
                 $"[SPAWNER] Stats aplicadas: tipo={tipoSeleccionado}, " +
                 $"vida={estadisticas.vidaMaxima:F1}, daño={estadisticas.daño:F1}, " +
                 $"defensa={estadisticas.defensa:F1}, pasiva={estadisticas.pasiva}"
             );
-    }}
+            return true;
+    }
+    private void CrearEnemigoExtra(bool permitirJefes)
+    {
+        var candidatos = new List<EnemyType>();
+        foreach (var entrada in enemyProbabilities)
+        {
+            if (entrada == null || entrada.prefab == null || entrada.type == EnemyType.Base) continue;
+            if (!permitirJefes && entrada.type != EnemyType.UltraPro) continue;
+            if (!candidatos.Contains(entrada.type)) candidatos.Add(entrada.type);
+        }
+        // UltraPro representa el extra raro. Usar Special si no hay prefab UltraPro.
+        if (!permitirJefes && candidatos.Count == 0)
+            foreach (var entrada in enemyProbabilities)
+                if (entrada != null && entrada.prefab != null && entrada.type == EnemyType.Special)
+                { candidatos.Add(EnemyType.Special); break; }
+        if (candidatos.Count == 0)
+        {
+            Debug.LogWarning("[PASIVAS] Falta un prefab de enemigo especial para aplicar el riesgo de aparición.");
+            return;
+        }
+        SpawnEnemigo(candidatos[Random.Range(0, candidatos.Count)], true);
+    }
+
+    private void AlDerrotarBossDelNivel(EnemyStats boss)
+    {
+        boss.AlMorir -= AlDerrotarBossDelNivel;
+        Debug.Log("[PASIVAS] Boss de la oleada 4 derrotado. Preparando elección.");
+        var pasivas = FindAnyObjectByType<PasivasHUD>(FindObjectsInactive.Include);
+        if (pasivas == null)
+        {
+            // Permite recibir la recompensa incluso si la escena abierta todavía no tiene el panel guardado.
+            pasivas = new GameObject("RecompensaPasivas", typeof(RectTransform)).AddComponent<PasivasHUD>();
+        }
+        System.Action continuar = modoNiveles ? AvanzarAlSiguienteNivel : null;
+        pasivas.OfrecerRecompensaBoss(continuar);
+    }
+}

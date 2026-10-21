@@ -1,226 +1,216 @@
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-/// <summary>Abre una vista de lectura de las cartas al pulsar el abanico.</summary>
+/// <summary>Cuatro ofertas fijas, con precio visible y una vista de detalle independiente.</summary>
 [DisallowMultipleComponent]
-public class CartasHUD : MonoBehaviour, IPointerClickHandler
+public class CartasHUD : MonoBehaviour
 {
     [SerializeField] private CartaFactory fabrica;
-    [Tooltip("Cartas nuevas que se suman a las cuatro cartas originales del HUD.")]
-    [SerializeField] private List<CartaDatos> cartasAdicionales = new List<CartaDatos>();
+    [SerializeField] private TowerPlacer colocador;
+    [Header("Barra de torretas")]
+    [SerializeField, Min(0)] private float margenInferior = 24f;
+    [SerializeField, Min(140)] private float anchoCarta = 170f;
+    [SerializeField, Min(0)] private float separacion = 12f;
+    [Tooltip("Opacidad de las ofertas cuando faltan engranajes para comprarlas.")]
+    [SerializeField, Range(.1f, 1f)] private float opacidadNoDisponible = .35f;
+    private const float AltoCarta = 300f;
+    private RectTransform baraja;
+    private Canvas canvas;
+    private readonly List<OfertaVista> vistas = new List<OfertaVista>();
+    private OfertaVista ofertaDetalle;
+    private CartaUI detalle;
 
-    private readonly List<CartaUI> originales = new List<CartaUI>();
-    private readonly List<CartaDatos> adicionalesActivas = new List<CartaDatos>();
-    private RectTransform pagina;
-    private TMP_Text numeroPagina;
-    private Button anterior;
-    private Button siguiente;
-    private int paginaActual;
-    private const int cartasPorPagina = 4;
-    private int Cantidad => originales.Count + adicionalesActivas.Count;
-    private int Paginas => Mathf.Max(1, Mathf.CeilToInt(Cantidad / (float)cartasPorPagina));
-
-    private GameObject ventana;
-    private RectTransform contenido;
-    private CursorLockMode bloqueoAnterior;
-    private bool cursorVisibleAnterior;
-
-    public bool Abierto => ventana != null && ventana.activeSelf;
-
-    private void Start()
+    private sealed class OfertaVista
     {
-        foreach (Image imagen in GetComponentsInChildren<Image>(true))
-            imagen.raycastTarget = true;
-
-        // Los detalles se leen en la vista desplegada, no en el abanico.
-        foreach (TMP_Text texto in GetComponentsInChildren<TMP_Text>(true))
-            texto.gameObject.SetActive(false);
+        public CartaTorreta Carta;
+        public RectTransform Rect;
+        public Button Boton;
+        public Image FondoPrecio;
+        public TMP_Text Precio;
+        public CanvasGroup Grupo;
     }
 
-    public void OnPointerClick(PointerEventData evento)
+    private void Awake()
     {
-        if (evento.button == PointerEventData.InputButton.Left)
-            Abrir();
+        foreach (Transform hijo in transform) hijo.gameObject.SetActive(false);
+        baraja = new GameObject("BarraTorretas", typeof(RectTransform)).GetComponent<RectTransform>();
+        baraja.SetParent(transform, false);
+        baraja.anchorMin = baraja.anchorMax = new Vector2(1, 0);
+        baraja.pivot = new Vector2(1, 0);
+        baraja.anchoredPosition = new Vector2(-6, margenInferior);
+        baraja.sizeDelta = new Vector2(anchoCarta * 4 + separacion * 3, AltoCarta);
+        canvas = GetComponentInParent<Canvas>();
+        RelojOleadasHUD.AsegurarConexion(canvas);
+        if (colocador == null) colocador = FindAnyObjectByType<TowerPlacer>();
     }
 
-    public void Abrir()
+    private void OnEnable()
     {
-        if (Abierto || !isActiveAndEnabled)
-            return;
-
-        if (fabrica == null)
+        if (colocador == null) colocador = FindAnyObjectByType<TowerPlacer>();
+        if (colocador != null)
         {
-            Debug.LogError("Asigna una CartaFactory a PanelCartas o usa Tools/Cartas/Configurar panel desplegable.", this);
-            return;
+            colocador.AlCambiarCartas += Actualizar;
+            colocador.AlCambiarPuntos += ActualizarSaldo;
         }
-
-        bloqueoAnterior = Cursor.lockState;
-        cursorVisibleAnterior = Cursor.visible;
-        Cursor.lockState = CursorLockMode.None;
-        Cursor.visible = true;
-
-        ventana = new GameObject("CartasDesplegadas", typeof(RectTransform), typeof(Canvas),
-            typeof(GraphicRaycaster));
-        BloqueoEntradaUI.EstablecerPanelAbierto(this, true);
-        ventana.transform.SetParent(GetComponentInParent<Canvas>().rootCanvas.transform, false);
-        Canvas canvas = ventana.GetComponent<Canvas>();
-        canvas.overrideSorting = true;
-        canvas.sortingOrder = 50;
-        RectTransform raiz = (RectTransform)ventana.transform;
-        Estirar(raiz);
-
-        Image fondo = Imagen("FondoCerrar", raiz, null);
-        Estirar(fondo.rectTransform);
-        fondo.color = new Color(0, 0, 0, .38f);
-        fondo.gameObject.AddComponent<Button>().onClick.AddListener(Cerrar);
-
-        contenido = new GameObject("Cartas", typeof(RectTransform)).GetComponent<RectTransform>();
-        contenido.SetParent(raiz, false);
-        contenido.anchorMin = contenido.anchorMax = new Vector2(.5f, .5f);
-        contenido.sizeDelta = new Vector2(1560, 620);
-        contenido.anchoredPosition = Vector2.zero;
-
-        pagina = new GameObject("Pagina", typeof(RectTransform)).GetComponent<RectTransform>();
-        pagina.SetParent(contenido, false);
-        Estirar(pagina);
-        anterior = Boton("Anterior", contenido, new Vector2(-300, -305), () => MostrarPagina(paginaActual - 1));
-        siguiente = Boton("Siguiente", contenido, new Vector2(300, -305), () => MostrarPagina(paginaActual + 1));
-        numeroPagina = Etiqueta("NumeroPagina", contenido);
-        numeroPagina.rectTransform.sizeDelta = new Vector2(600, 48);
-        numeroPagina.rectTransform.anchoredPosition = new Vector2(0, 305);
-        ActualizarCartas();
-        MostrarPagina(0);
-
-        Boton("Cerrar", contenido, new Vector2(0, -305), Cerrar);
-        AjustarTamano();
+        Actualizar();
     }
 
-    /// <summary>Agrega una definicion a esta mano, sin modificar el asset compartido.</summary>
-    public void Agregar(CartaDatos datos)
+    private void OnDisable()
     {
-        if (datos == null) throw new System.ArgumentNullException(nameof(datos));
-        cartasAdicionales.Add(datos);
-        if (Abierto)
+        if (colocador != null)
         {
-            ActualizarCartas();
-            MostrarPagina(Paginas - 1);
+            colocador.AlCambiarCartas -= Actualizar;
+            colocador.AlCambiarPuntos -= ActualizarSaldo;
         }
-    }
-
-    private void ActualizarCartas()
-    {
-        originales.Clear();
-        adicionalesActivas.Clear();
-        foreach (Transform hijo in transform)
-            if (hijo.TryGetComponent(out CartaUI carta))
-                originales.Add(carta);
-        foreach (CartaDatos datos in cartasAdicionales)
-            if (datos != null)
-                adicionalesActivas.Add(datos);
-    }
-
-    private void MostrarPagina(int indicePagina)
-    {
-        paginaActual = Mathf.Clamp(indicePagina, 0, Paginas - 1);
-        foreach (Transform hijo in pagina)
-        {
-            hijo.gameObject.SetActive(false);
-            Destroy(hijo.gameObject);
-        }
-        int inicio = paginaActual * cartasPorPagina;
-        int cantidadVisible = Mathf.Min(cartasPorPagina, Cantidad - inicio);
-        for (int i = 0; i < cantidadVisible; i++)
-        {
-            int indice = inicio + i;
-            CartaUI vista;
-            if (indice < originales.Count)
-            {
-                CartaUI original = originales[indice];
-                vista = fabrica.Crear(original.Rareza, original.Nombre, original.Efecto, pagina);
-                vista.CambiarEstado(original.Estado);
-            }
-            else
-            {
-                vista = fabrica.Crear(adicionalesActivas[indice - originales.Count], pagina);
-            }
-            RectTransform rect = (RectTransform)vista.transform;
-            rect.anchorMin = rect.anchorMax = new Vector2(.5f, .5f);
-            rect.anchoredPosition = new Vector2((i - (cantidadVisible - 1) * .5f) * 390, 0);
-        }
-        numeroPagina.text = "Cartas · " + (paginaActual + 1) + " / " + Paginas;
-        anterior.interactable = paginaActual > 0;
-        siguiente.interactable = paginaActual < Paginas - 1;
-    }
-
-    private static Button Boton(string nombre, Transform padre, Vector2 posicion, UnityEngine.Events.UnityAction accion)
-    {
-        Image imagen = Imagen(nombre, padre, null);
-        imagen.color = new Color(.18f, .14f, .12f);
-        imagen.rectTransform.anchorMin = imagen.rectTransform.anchorMax = new Vector2(.5f, .5f);
-        imagen.rectTransform.sizeDelta = new Vector2(180, 52);
-        imagen.rectTransform.anchoredPosition = posicion;
-        Button boton = imagen.gameObject.AddComponent<Button>();
-        boton.onClick.AddListener(accion);
-        TMP_Text texto = Etiqueta("Texto", imagen.transform);
-        Estirar(texto.rectTransform);
-        texto.text = nombre;
-        return boton;
-    }
-
-    private static TMP_Text Etiqueta(string nombre, Transform padre)
-    {
-        var texto = new GameObject(nombre, typeof(RectTransform), typeof(TextMeshProUGUI)).GetComponent<TextMeshProUGUI>();
-        texto.transform.SetParent(padre, false);
-        texto.font = TMP_Settings.defaultFontAsset;
-        texto.fontSize = 26;
-        texto.alignment = TextAlignmentOptions.Center;
-        texto.raycastTarget = false;
-        return texto;
+        OcultarDetalle();
     }
 
     private void LateUpdate()
     {
-        if (Abierto)
-            AjustarTamano();
+        Camera camara = canvas != null && canvas.renderMode != RenderMode.ScreenSpaceOverlay
+            ? canvas.worldCamera : null;
+        OfertaVista apuntada = null;
+        if (!BloqueoEntradaUI.HayPanelAbierto && Time.timeScale > 0)
+            foreach (OfertaVista vista in vistas)
+                if (RectTransformUtility.RectangleContainsScreenPoint(vista.Rect, Input.mousePosition, camara))
+                {
+                    apuntada = vista;
+                    break;
+                }
+        if (apuntada == ofertaDetalle) return;
+        OcultarDetalle();
+        if (apuntada != null) MostrarDetalle(apuntada);
     }
 
-    private void AjustarTamano()
+    private void Actualizar()
     {
-        Rect rect = ((RectTransform)ventana.transform).rect;
-        float escala = Mathf.Max(.01f, Mathf.Min(1f, (rect.width - 60) / 1560f, (rect.height - 60) / 680f));
-        contenido.localScale = Vector3.one * escala;
+        if (baraja == null || fabrica == null || colocador == null) return;
+        OcultarDetalle();
+        foreach (Transform hijo in baraja)
+        {
+            hijo.gameObject.SetActive(false);
+            Destroy(hijo.gameObject);
+        }
+        vistas.Clear();
+        int cantidad = Mathf.Min(4, colocador.CantidadCartasVisibles);
+        for (int i = 0; i < cantidad; i++)
+        {
+            CartaTorreta carta = colocador.Cartas[i];
+            Image fondo = Imagen("Oferta " + carta.Nombre, baraja);
+            fondo.color = new Color(.13f, .11f, .10f, .95f);
+            RectTransform rect = fondo.rectTransform;
+            rect.anchorMin = rect.anchorMax = new Vector2(1, 0);
+            rect.pivot = new Vector2(1, 0);
+            rect.sizeDelta = new Vector2(anchoCarta, AltoCarta);
+            rect.anchoredPosition = new Vector2(-(cantidad - 1 - i) * (anchoCarta + separacion), 0);
+            Outline borde = fondo.gameObject.AddComponent<Outline>();
+            borde.effectColor = colocador.CartaSeleccionada == carta
+                ? new Color(1, .8f, .3f) : new Color(.5f, .42f, .3f);
+            borde.effectDistance = new Vector2(2, -2);
+            Texto(rect, "Nombre", carta.Nombre, .86f, .98f, 21);
+            CartaUI arte = fabrica.Crear(carta.Rareza, "", "", rect);
+            var arteRect = (RectTransform)arte.transform;
+            arteRect.anchorMin = arteRect.anchorMax = new Vector2(.5f, 0);
+            arteRect.pivot = new Vector2(.5f, 0);
+            arteRect.anchoredPosition = new Vector2(0, 65);
+            arteRect.localScale = Vector3.one * .38f;
+            foreach (Graphic grafico in arte.GetComponentsInChildren<Graphic>()) grafico.raycastTarget = false;
+            foreach (TMP_Text texto in arte.GetComponentsInChildren<TMP_Text>()) texto.gameObject.SetActive(false);
+            Texto(rect, "Rareza", carta.Rareza.ToString(), .14f, .22f, 17);
+            Image precio = Imagen("Precio", rect);
+            precio.raycastTarget = false;
+            Anclar(precio.rectTransform, .04f, .13f);
+            TMP_Text cantidadTexto = Texto(precio.transform, "Cantidad", "", 0, 1, 21);
+            CanvasGroup grupo = fondo.gameObject.AddComponent<CanvasGroup>();
+            Button boton = fondo.gameObject.AddComponent<Button>();
+            boton.targetGraphic = fondo;
+            var navegacion = boton.navigation;
+            navegacion.mode = Navigation.Mode.None;
+            boton.navigation = navegacion;
+            boton.onClick.AddListener(() => colocador.SeleccionarCarta(carta));
+            vistas.Add(new OfertaVista { Carta = carta, Rect = rect, Boton = boton,
+                FondoPrecio = precio, Precio = cantidadTexto, Grupo = grupo });
+        }
+        ActualizarSaldo(colocador.puntosActuales);
     }
 
-    public void Cerrar()
+    private void ActualizarSaldo(int saldo)
     {
-        BloqueoEntradaUI.EstablecerPanelAbierto(this, false);
-        if (ventana == null)
-            return;
-        ventana.SetActive(false);
-        Destroy(ventana);
-        ventana = null;
-        Cursor.lockState = bloqueoAnterior;
-        Cursor.visible = cursorVisibleAnterior;
+        foreach (OfertaVista vista in vistas)
+        {
+            bool alcanza = vista.Carta.Comprada || saldo >= colocador.ObtenerPrecio(vista.Carta);
+            vista.Boton.interactable = alcanza;
+            vista.Grupo.alpha = alcanza ? 1f : opacidadNoDisponible;
+            vista.FondoPrecio.color = alcanza ? new Color(.12f, .25f, .17f) : new Color(.36f, .13f, .12f);
+            vista.Precio.text = vista.Carta.Comprada ? "Comprada · colocar"
+                : colocador.ObtenerPrecio(vista.Carta) + " engranajes";
+        }
+        if (detalle != null && ofertaDetalle != null) ActualizarTextoDetalle();
     }
 
-    private void OnDisable() => Cerrar();
+    private void MostrarDetalle(OfertaVista vista)
+    {
+        ofertaDetalle = vista;
+        detalle = fabrica.Crear(vista.Carta.Rareza, vista.Carta.Nombre, "", baraja);
+        var rect = (RectTransform)detalle.transform;
+        rect.anchorMin = rect.anchorMax = new Vector2(1, 0);
+        rect.pivot = new Vector2(1, 0);
+        rect.localScale = Vector3.one * .8f;
+        rect.anchoredPosition = new Vector2(vista.Rect.anchoredPosition.x, AltoCarta + 16);
+        foreach (Graphic grafico in detalle.GetComponentsInChildren<Graphic>()) grafico.raycastTarget = false;
+        ActualizarTextoDetalle();
+    }
 
-    private static Image Imagen(string nombre, Transform padre, Sprite sprite)
+    private void ActualizarTextoDetalle()
+    {
+        CartaTorreta carta = ofertaDetalle.Carta;
+        detalle.Mostrar(carta.Nombre, carta.Rareza + "\nDaño ×" + carta.MultiplicadorDanio.ToString("0.##")
+            + "\n" + (carta.Comprada ? "Comprada · colocar" : colocador.ObtenerPrecio(carta) + " engranajes"));
+        detalle.transform.Find("Estado").gameObject.SetActive(false);
+    }
+
+    private void OcultarDetalle()
+    {
+        if (detalle != null)
+        {
+            detalle.gameObject.SetActive(false);
+            Destroy(detalle.gameObject);
+        }
+        detalle = null;
+        ofertaDetalle = null;
+    }
+
+    private static Image Imagen(string nombre, Transform padre)
     {
         var imagen = new GameObject(nombre, typeof(RectTransform), typeof(CanvasRenderer), typeof(Image)).GetComponent<Image>();
         imagen.transform.SetParent(padre, false);
-        imagen.sprite = sprite;
-        imagen.preserveAspect = sprite != null;
         return imagen;
     }
 
-    private static void Estirar(RectTransform rect)
+    private static void Anclar(RectTransform rect, float abajo, float arriba)
     {
-        rect.anchorMin = Vector2.zero;
-        rect.anchorMax = Vector2.one;
+        rect.anchorMin = new Vector2(.05f, abajo);
+        rect.anchorMax = new Vector2(.95f, arriba);
         rect.offsetMin = rect.offsetMax = Vector2.zero;
+    }
+
+    private static TMP_Text Texto(Transform padre, string nombre, string contenido, float abajo, float arriba, float tamano)
+    {
+        var texto = new GameObject(nombre, typeof(RectTransform), typeof(TextMeshProUGUI)).GetComponent<TextMeshProUGUI>();
+        texto.transform.SetParent(padre, false);
+        Anclar(texto.rectTransform, abajo, arriba);
+        texto.font = TMP_Settings.defaultFontAsset;
+        texto.fontSize = texto.fontSizeMax = tamano;
+        texto.fontSizeMin = 13;
+        texto.enableAutoSizing = true;
+        texto.fontStyle = FontStyles.Bold;
+        texto.alignment = TextAlignmentOptions.Center;
+        texto.color = new Color(1, .9f, .65f);
+        texto.raycastTarget = false;
+        texto.richText = false;
+        texto.text = contenido;
+        return texto;
     }
 }

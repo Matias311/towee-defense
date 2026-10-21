@@ -8,7 +8,7 @@ public class Recolector : MonoBehaviour
 
     void Update()
     {
-        if (Time.timeScale == 0f) return;
+        if (Time.timeScale == 0f || BloqueoEntradaUI.HayPanelAbierto) return;
         if (!Input.GetKeyDown(tecla)) return;
 
         Collider[] cercanos = Physics.OverlapSphere(transform.position, radio, capaMateriales);

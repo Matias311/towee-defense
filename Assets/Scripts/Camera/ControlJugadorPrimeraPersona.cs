@@ -17,7 +17,7 @@ public class ControlJugadorPrimeraPersona : MonoBehaviour
 
     void Update()
     {
-        if (Time.timeScale == 0f) return; 
+        if (Time.timeScale == 0f || BloqueoEntradaUI.HayPanelAbierto) return;
 
         rotX = Mathf.Clamp(rotX - Input.GetAxis("Mouse Y") * sensibilidad, -80f, 80f);
         camara.localRotation = Quaternion.Euler(rotX, 0f, 0f);

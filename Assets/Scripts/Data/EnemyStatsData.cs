@@ -28,6 +28,7 @@ public enum EnemyPassiveType {
 [CreateAssetMenu(fileName = "EnemyStats", menuName = "Tower Defense/Enemy Stats")]
 public class EnemyStatsData : ScriptableObject {
     public EnemyType tipo = EnemyType.Base;
+    public bool esMiniJefe;
     public float vida = 100f;
     public float daño = 10f;
     public float defensa;

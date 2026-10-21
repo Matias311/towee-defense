@@ -13,6 +13,33 @@ public enum EstadoCarta
 [DisallowMultipleComponent]
 public class CartaUI : MonoBehaviour
 {
+    [SerializeField] private CartaDatos datos;
+    public CartaDatos Datos => datos;
+    private CartaInstancia instancia;
+
+    public void Vincular(CartaInstancia nuevaInstancia)
+    {
+        if (instancia != null) instancia.AlCambiar -= RefrescarInstancia;
+        instancia = nuevaInstancia;
+        datos = instancia.Datos;
+        instancia.AlCambiar += RefrescarInstancia;
+        RefrescarInstancia();
+    }
+
+    private void RefrescarInstancia()
+    {
+        rareza = datos.Rareza;
+        nombre = datos.Titulo;
+        efecto = datos.Descripcion;
+        estado = instancia.Estado;
+        ActualizarVista();
+    }
+
+    private void OnDestroy()
+    {
+        if (instancia != null) instancia.AlCambiar -= RefrescarInstancia;
+    }
+
     [Header("Contenido")]
     [SerializeField] private RarezaCarta rareza;
     [SerializeField] private string nombre = "Carta";
@@ -68,6 +95,7 @@ public class CartaUI : MonoBehaviour
 
     public void CambiarEstado(EstadoCarta nuevoEstado)
     {
+        if (instancia != null) { instancia.CambiarEstado(nuevoEstado); return; }
         estado = nuevoEstado;
         ActualizarVista();
     }
@@ -75,6 +103,12 @@ public class CartaUI : MonoBehaviour
     private void ActualizarVista()
     {
         actualizacionPendiente = false;
+        if (datos != null)
+        {
+            rareza = datos.Rareza;
+            nombre = datos.Titulo;
+            efecto = datos.Descripcion;
+        }
 
         if (titulo != null)
             titulo.text = nombre;

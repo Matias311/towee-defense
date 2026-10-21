@@ -148,7 +148,7 @@ public class TowerHoverInfo : MonoBehaviour
         rectTexto.offsetMax = new Vector2(-12f, -9f);
 
         RectTransform rectPanel = panel.GetComponent<RectTransform>();
-        rectPanel.sizeDelta = new Vector2(235f, 190f);
+        rectPanel.sizeDelta = new Vector2(270f, 230f);
     }
 
     void ActualizarPanel()
@@ -161,11 +161,17 @@ public class TowerHoverInfo : MonoBehaviour
             $"Daño: {estadisticas.daño:0.0}\n" +
             $"Defensa: {estadisticas.defensa:0.0}\n" +
             $"Penetracion: {estadisticas.penetracion:0.0}\n" +
-            $"Ataque cada: {estadisticas.tiempoEntreAtaques:0.00}s\n" +
+            $"Ataque cada: {(estadisticas.tiempoEntreAtaques / SistemaPasivas.Eventos.MultiplicadorCadencia):0.00}s\n" +
             $"Tipo de ataque: {estadisticas.tipoAtaque}\n" +
             $"Objetivos: {estadisticas.cantidadObjetivos}\n" +
             $"Prioridad: {estadisticas.prioridadObjetivo}\n" +
             $"Proyectil: {(estadisticas.usarProyectil ? "SI" : "NO")}";
+        var colocada = GetComponent<TorreColocada>();
+        if (colocada != null && colocada.Colocador != null)
+        {
+            texto.text += "\n[V] Vender: " + colocada.Colocador.CotizarVenta(colocada) + " engranajes";
+            if (colocada.TieneAura) texto.text += "\nAura: +" + colocada.DanioAura + "% daño / +" + colocada.AlcanceAura + "% alcance";
+        }
     }
 
     string ObtenerNombreTipo()

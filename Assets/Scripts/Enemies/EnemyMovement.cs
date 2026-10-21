@@ -59,7 +59,7 @@ public class EnemyMovement : MonoBehaviour
         transform.position = Vector3.MoveTowards(
             transform.position,
             objetivo.position,
-            speed * Time.deltaTime
+            speed * SistemaPasivas.MultiplicadorVelocidadEnemigos * Time.deltaTime
         );
 
         // Rotar el objeto para que "mire" hacia donde va

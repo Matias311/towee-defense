@@ -31,6 +31,8 @@ public class PauseMenu : MonoBehaviour
 
         if (sePresionoVolver)
         {
+            if (!juegoPausado && PasivasHUD.CerrarVentanaAbierta()) return;
+            if (!juegoPausado && Input.GetMouseButtonDown(1) && TowerPlacer.CancelarColocacionActiva()) return;
             // Si el submenu de opciones esta abierto, volver solo cierra el submenu
             if (panelOpciones != null && panelOpciones.activeSelf)
             {

@@ -12,13 +12,74 @@ public class TowerStats : TowerBaseStats {
     public GameObject prefabProyectil;
     public float velocidadProyectil = 14f;
 
-    void Awake() {
+    private float[] baseSinPasivas;
+    private float multiplicadorRareza = 1f;
+    private float bonoColocacionDanio;
+    public float RangoSinAura { get; private set; }
+    public void AgregarBonoColocacion(float porcentaje)
+    {
+        bonoColocacionDanio += Mathf.Max(0, porcentaje);
+        RecalcularPasivas();
+    }
+
+    protected virtual void Awake() {
         AplicarDatosBase();
+        CapturarBase();
+    }
+
+    void OnEnable() => RecalcularPasivas();
+
+    private void CapturarBase()
+    {
+        baseSinPasivas = new[] { daño, rango, 1f / Mathf.Max(.05f, tiempoEntreAtaques), defensa,
+            penetracion, radioArea, velocidadProyectil };
+        multiplicadorRareza = 1f;
+        RecalcularPasivas();
+    }
+
+    public void EstablecerRareza(float multiplicador)
+    {
+        multiplicadorRareza = Mathf.Max(0, multiplicador);
+        RecalcularPasivas();
+    }
+
+    public void RecalcularPasivas() => RecalcularPasivas(false);
+
+    public void RecalcularPasivas(bool ignorarAura)
+    {
+        if (baseSinPasivas == null)
+        {
+            CapturarBase();
+            return;
+        }
+        daño = SistemaPasivas.Calcular(EstadisticaPasiva.Danio, baseSinPasivas[0] * multiplicadorRareza, tipo);
+        daño *= 1 + bonoColocacionDanio / 100f;
+        RangoSinAura = SistemaPasivas.Calcular(EstadisticaPasiva.Alcance, baseSinPasivas[1], tipo);
+        Vector2 aura = ignorarAura ? Vector2.zero : SistemaPasivas.BonoAura(this);
+        daño *= 1 + aura.x / 100f;
+        rango = RangoSinAura * (1 + aura.y / 100f);
+        float ataques = SistemaPasivas.Calcular(EstadisticaPasiva.VelocidadAtaque, baseSinPasivas[2], tipo);
+        tiempoEntreAtaques = Mathf.Max(.05f, 1f / Mathf.Max(.001f, ataques));
+        defensa = SistemaPasivas.Calcular(EstadisticaPasiva.Defensa, baseSinPasivas[3], tipo);
+        penetracion = SistemaPasivas.Calcular(EstadisticaPasiva.Penetracion, baseSinPasivas[4], tipo);
+        radioArea = SistemaPasivas.Calcular(EstadisticaPasiva.RadioArea, baseSinPasivas[5], tipo);
+        velocidadProyectil = SistemaPasivas.Calcular(EstadisticaPasiva.VelocidadProyectil, baseSinPasivas[6], tipo);
     }
 
     public override void Configurar(TowerStatsData datosConfigurados) {
+        if (baseSinPasivas != null)
+        {
+            daño = baseSinPasivas[0];
+            rango = baseSinPasivas[1];
+            tiempoEntreAtaques = 1f / Mathf.Max(.001f, baseSinPasivas[2]);
+            defensa = baseSinPasivas[3];
+            penetracion = baseSinPasivas[4];
+            radioArea = baseSinPasivas[5];
+            velocidadProyectil = baseSinPasivas[6];
+        }
         if (datosConfigurados == null) {
             AplicarPerfilPorTipo();
+            CapturarBase();
             return;
         }
 
@@ -37,6 +98,7 @@ public class TowerStats : TowerBaseStats {
         usarProyectil = datos.usarProyectil;
         prefabProyectil = datos.prefabProyectil;
         velocidadProyectil = Mathf.Max(0.1f, datos.velocidadProyectil);
+        CapturarBase();
         RegistrarLogEstadisticas();
     }
 
