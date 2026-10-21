@@ -92,7 +92,7 @@ public class TowerPlacer : MonoBehaviour
 
         if (camaraPrincipal == null)
         {
-            camaraPrincipal = Camera.main;
+            ResolverCamaraDeColocacion();
         }
 
         AlCambiarCartas?.Invoke();
@@ -138,10 +138,17 @@ public class TowerPlacer : MonoBehaviour
     public int CotizarVenta(TorreColocada torre) => SistemaPasivas.Eventos.VentaSinDevolucion ? 0
         : Mathf.FloorToInt(torre.PrecioPagado * porcentajeDevolucionVenta / 100f);
 
-    public bool IntentarVender(TorreColocada torre)
+    public bool HayColocacionActiva => colocando;
+
+    public bool IntentarVender(TorreColocada torre) => Vender(torre, false);
+
+    public bool IntentarVenderDesdeInterfaz(TorreColocada torre) => Vender(torre, true);
+
+    private bool Vender(TorreColocada torre, bool desdeInterfaz)
     {
         if (torre == null || torre.Colocador != this || !torre.isActiveAndEnabled
-            || Time.timeScale == 0 || BloqueoEntradaUI.BloqueaColocacion() || !torre.MarcarVendida()) return false;
+            || Time.timeScale == 0 || BloqueoEntradaUI.HayPanelAbierto
+            || (!desdeInterfaz && BloqueoEntradaUI.BloqueaColocacion()) || !torre.MarcarVendida()) return false;
         int devolver = SistemaPasivas.Eventos.DevolucionVenta(torre.PrecioPagado, porcentajeDevolucionVenta, UnityEngine.Random.value);
         SistemaPasivas.RetirarTorre(torre);
         torre.gameObject.SetActive(false);
@@ -355,9 +362,22 @@ public class TowerPlacer : MonoBehaviour
         AlCambiarCartas?.Invoke();
     }
 
+    private void ResolverCamaraDeColocacion()
+    {
+        // Usar la cámara aérea de esta escena aunque todavía no tenga la etiqueta MainCamera.
+        foreach (ModoCamara modo in FindObjectsByType<ModoCamara>())
+            if (modo.gameObject.scene == gameObject.scene && modo.camaraAerea != null)
+            {
+                camaraPrincipal = modo.camaraAerea;
+                return;
+            }
+        camaraPrincipal = Camera.main;
+    }
+
     void ActualizarPreview()
     {
         previewSobreTerreno = false;
+        if (camaraPrincipal == null) ResolverCamaraDeColocacion();
         if (previewTorre == null || camaraPrincipal == null) return;
 
         Ray ray = camaraPrincipal.ScreenPointToRay(Input.mousePosition);

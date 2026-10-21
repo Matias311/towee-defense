@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public enum EnemyType {
     Base,
@@ -97,7 +98,7 @@ public class EnemySpawner : MonoBehaviour {
     public float incrementoDificultadPorNivel = 0.15f;
 
     [Header("Configuracion de oleadas")]
-    [Range(1, 3)]
+    [Range(1, 4)]
     public int nivelActual = 1;
     public int oleadaActual = 1;
     public event System.Action<int, int> AlCambiarProgreso;
@@ -109,15 +110,29 @@ public class EnemySpawner : MonoBehaviour {
     private bool nivelCompletado = false;
     private int ultimaOleadaConRiesgo = -1;
 
+    void Awake()
+    {
+        SistemaPasivas.PrepararEscena(gameObject.scene);
+        string nombre = gameObject.scene.name;
+        if (nombre.Length == 6 && nombre.StartsWith("etapa")
+            && int.TryParse(nombre.Substring(5), out int etapa) && etapa >= 1 && etapa <= 4)
+        {
+            nivelActual = etapa;
+            modoNiveles = true;
+        }
+    }
+
     void Start() {
         // Asignar prefabs por defecto si no estan asignados
         AssignDefaultPrefabs();
         AplicarProbabilidadesPorDefecto();
         IniciarNivel(nivelActual);
+        if (FindAnyObjectByType<PasivasHUD>(FindObjectsInactive.Include) == null)
+            new GameObject("RecompensaPasivas", typeof(RectTransform)).AddComponent<PasivasHUD>();
     }
 
     public void IniciarNivel(int nivel) {
-        nivelActual = Mathf.Clamp(nivel, 1, 3);
+        nivelActual = Mathf.Clamp(nivel, 1, 4);
         SistemaPasivas.IniciarNivel();
         oleadaActual = 1;
         enemigosCreados = 0;
@@ -134,14 +149,24 @@ public class EnemySpawner : MonoBehaviour {
         IniciarNivel(nivel);
     }
 
-    public void AvanzarAlSiguienteNivel() {
-        if (nivelActual >= 3) {
-            Debug.Log("[SPAWNER] Se completo el nivel maximo.");
-            nivelCompletado = false;
+    public void AvanzarAlSiguienteNivel()
+    {
+        if (nivelActual >= 4)
+        {
+            nivelCompletado = true;
+            spawneando = false;
+            Debug.Log("[SPAWNER] Etapa 4 completada. Fin de la partida.");
             return;
         }
-
-        IniciarNivel(nivelActual + 1);
+        string siguiente = "etapa" + (nivelActual + 1);
+        if (!Application.CanStreamedLevelBeLoaded(siguiente))
+        {
+            Debug.LogError("[SPAWNER] La escena " + siguiente + " no está habilitada en Build Settings.");
+            return;
+        }
+        SistemaPasivas.PrepararContinuacion(siguiente);
+        Time.timeScale = 1f;
+        SceneManager.LoadScene(siguiente);
     }
 
     void AssignDefaultPrefabs() {

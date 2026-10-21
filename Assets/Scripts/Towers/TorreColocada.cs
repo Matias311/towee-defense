@@ -37,6 +37,13 @@ public class TorreColocada : MonoBehaviour
         return true;
     }
 
+    void OnMouseDown()
+    {
+        if (!registrada || Vendida || Colocador == null || !Colocador.isActiveAndEnabled
+            || Colocador.HayColocacionActiva || BloqueoEntradaUI.BloqueaColocacion()) return;
+        VentaTorreHUD.Mostrar(this);
+    }
+
     void OnMouseOver()
     {
         if (registrada && !Vendida && Input.GetKeyDown(KeyCode.V)) Colocador.IntentarVender(this);

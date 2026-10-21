@@ -13,6 +13,7 @@ public class CartaFactory : ScriptableObject
     [SerializeField] private Sprite legendaria;
     [SerializeField] private Sprite adornoEpico;
     [SerializeField] private Sprite adornoLegendario;
+    [SerializeField] private bool plantillaPasiva;
 
     public CartaUI Crear(CartaDatos datos, Transform padre)
     {
@@ -38,10 +39,10 @@ public class CartaFactory : ScriptableObject
         imagen.transform.SetParent(padre, false);
         imagen.sprite = diseno;
         imagen.preserveAspect = true;
-        imagen.rectTransform.sizeDelta = new Vector2(300, 500);
-        TMP_Text textoTitulo = Texto(imagen.transform, "Titulo", .35f, .44f, 23, true);
-        TMP_Text textoDescripcion = Texto(imagen.transform, "Descripcion", .15f, .34f, 20, false);
-        TMP_Text textoEstado = Texto(imagen.transform, "Estado", .08f, .14f, 15, true);
+        imagen.rectTransform.sizeDelta = plantillaPasiva ? new Vector2(330, 490) : new Vector2(300, 500);
+        TMP_Text textoTitulo = Texto(imagen.transform, "Titulo", plantillaPasiva ? .56f : .35f, plantillaPasiva ? .72f : .44f, plantillaPasiva ? 28 : 23, true);
+        TMP_Text textoDescripcion = Texto(imagen.transform, "Descripcion", plantillaPasiva ? .07f : .15f, plantillaPasiva ? .40f : .34f, 20, false);
+        TMP_Text textoEstado = Texto(imagen.transform, "Estado", plantillaPasiva ? .02f : .08f, plantillaPasiva ? .06f : .14f, 15, true);
         CartaUI carta = imagen.gameObject.AddComponent<CartaUI>();
         carta.ConfigurarVista(rareza, textoTitulo, textoDescripcion, textoEstado);
         carta.Mostrar(titulo, descripcion);

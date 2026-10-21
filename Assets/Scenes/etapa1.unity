@@ -70004,7 +70004,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: e34155d108874db4bbcc3dd02f19af76, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 60ba0175784b4fc1aeafa2b4acc6d384, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -72743,7 +72743,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b31ec7f5899941e287591332882b3ba3, type: 3}
   m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::PasivasHUD
-  fabrica: {fileID: 11400000, guid: beb5711d9bfe4b2ab3b755526fa7df06, type: 2}
+  fabrica: {fileID: 11400000, guid: 887a255b500f492d9bd17692258354c2, type: 2}
   configuracion: {fileID: 0}
   cartasDesbloqueables:
   - {fileID: 11400000, guid: 8fdd703a036546eea729e36aeb1826be, type: 2}

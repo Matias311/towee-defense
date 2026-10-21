@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 /// <summary>Copia los modificadores de los assets; conserva el balance de cada adquisición.</summary>
 public sealed class BonosPasivas
@@ -94,6 +95,20 @@ public static class SistemaPasivas
     public static EstadoEventosPasivas Eventos { get; private set; } = new EstadoEventosPasivas();
     private static readonly List<TorreColocada> torres = new List<TorreColocada>();
     private static int ultimoFrameActualizado = -1;
+    private static readonly List<PasivaDatos> adquiridas = new List<PasivaDatos>();
+    public static IReadOnlyList<PasivaDatos> Adquiridas => adquiridas;
+    private static Scene escenaPreparada;
+    private static string escenaContinuacion;
+
+    public static void PrepararContinuacion(string nombreEscena) => escenaContinuacion = nombreEscena;
+
+    public static void PrepararEscena(Scene escena)
+    {
+        if (escena == escenaPreparada) return;
+        if (escena.name != escenaContinuacion) ReiniciarPartida();
+        escenaContinuacion = null;
+        escenaPreparada = escena;
+    }
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
     private static void Reiniciar()
@@ -101,6 +116,9 @@ public static class SistemaPasivas
         bonos = new BonosPasivas();
         Eventos = new EstadoEventosPasivas();
         torres.Clear();
+        adquiridas.Clear();
+        escenaPreparada = default;
+        escenaContinuacion = null;
         ultimoFrameActualizado = -1;
     }
 
@@ -196,6 +214,8 @@ public static class SistemaPasivas
 
     public static void Adquirir(PasivaDatos datos)
     {
+        if (datos == null) return;
+        adquiridas.Add(datos);
         AdquirirInterna(datos, new HashSet<PasivaDatos>());
         RecalcularTorres();
         foreach (var enemigo in Object.FindObjectsByType<EnemyStats>()) ConfigurarEscudo(enemigo);
