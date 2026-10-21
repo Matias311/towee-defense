@@ -17,7 +17,7 @@ public class TowerAttackController : MonoBehaviour {
     }
 
     void Update() {
-        temporizadorAtaque -= Time.deltaTime;
+        temporizadorAtaque -= Time.deltaTime * SistemaPasivas.Eventos.MultiplicadorCadencia;
         if (temporizadorAtaque > 0f) return;
 
         EnemyStats objetivo = EncontrarObjetivo();
@@ -50,11 +50,11 @@ public class TowerAttackController : MonoBehaviour {
                 : visual != null ? visual.bounds.extents.magnitude + 0.1f : 0.3f;
             TowerImpactVisual.Mostrar(centro, 0f, separacion);
         }
-        objetivo.RecibirDanio(new DamageData(
+        SistemaPasivas.AplicarImpacto(objetivo, new DamageData(
             estadisticas.daño,
             DamageType.Fisico,
             estadisticas.penetracion
-        ));
+        ), SistemaPasivas.Perfil(estadisticas.tipo));
     }
 
     void AtacarEnArea(Vector3 posicionImpacto) {
@@ -104,7 +104,8 @@ public class TowerAttackController : MonoBehaviour {
                 ? estadisticas.radioArea
                 : 0f,
             estadisticas.cantidadObjetivos,
-            estadisticas.velocidadProyectil
+            estadisticas.velocidadProyectil,
+            SistemaPasivas.Perfil(estadisticas.tipo)
         );
     }
 

@@ -1,5 +1,6 @@
 public class TorreBasicaStats : TowerStats {
-    void Awake() {
+    protected override void Awake() {
         tipo = TowerType.Basica;
+        base.Awake();
     }
 }

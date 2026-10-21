@@ -1,0 +1,68 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a9de9ae097304943999a9e9628c2077c, type: 3}
+  m_Name: HordaEnfurecida
+  m_EditorClassIdentifier: Assembly-CSharp::PasivaDatos
+  rareza: 3
+  titulo: "Horda enfurecida"
+  descripcion: ""
+  efecto: 0
+  porcentaje: 0
+  esPenalizacion: 1
+  todasLasTorretas: 1
+  tipoTorreta: 0
+  descripcionAutomatica: 1
+  mejoras: []
+  combate:
+    probabilidadCritico: 0
+    multiplicadorCritico: 2
+    probabilidadInstaKill: 0
+    instaKillAfectaJefes: 0
+    probabilidadSangrado: 0
+    danioSangrado: 20
+    duracionSangrado: 4
+  mundo:
+    ralentizacionEnemigos: 0
+    defensaCasa: 0
+    aumentoVelocidadEnemigos: 0
+    aumentoFrecuenciaEnemigos: 0
+    probabilidadExtraRaro: 0
+    probabilidadEspecialOJefe: 0
+    perdidaVidaActual: 0
+    aumentoDanioRecibidoCasa: 0
+  eventos:
+    danioPrimeraTorre: 0
+    probabilidadReembolso: 0
+    probabilidadAura: 0
+    danioAura: 15
+    alcanceAura: 25
+    probabilidadFrenesi: 0
+    duracionFrenesi: 5
+    bajasParaPulso: 0
+    ralentizacionPulso: 80
+    duracionPulso: 5
+    segundosParaCurar: 0
+    curacionPorIntervalo: 1
+    maxCuracionPorNivel: 5
+    soloUnNivel: 0
+    bajasParaEnfurecer: 25
+    probabilidadEnfurecer: 50
+    probabilidadDobleDanioCasa: 0
+    probabilidadLentoAlMatarEspecial: 0
+    factorCadenciaLenta: 0.75
+    duracionCadenciaLenta: 10
+    preciosDobles: 0
+    ventaSinDevolucion: 0
+    sinDescansoOleadas: 0
+    probabilidadEscudo: 0
+    puntosEscudo: 1
+  penalizaciones: []

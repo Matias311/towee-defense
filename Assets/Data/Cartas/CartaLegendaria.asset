@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a9de9ae097304943999a9e9628c2077c, type: 3}
+  m_Name: CartaLegendaria
+  m_EditorClassIdentifier: Assembly-CSharp::PasivaDatos
+  rareza: 3
+  titulo: "Munición perforante"
+  descripcion: ""
+  efecto: 0
+  porcentaje: 20
+  todasLasTorretas: 1
+  tipoTorreta: 0
+  descripcionAutomatica: 1
+  mejoras:
+  - estadistica: 0
+    porcentaje: 15
+    cantidadFija: 0
+  - estadistica: 4
+    porcentaje: 0
+    cantidadFija: 5

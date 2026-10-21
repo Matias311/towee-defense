@@ -18,6 +18,7 @@ public class TowerProjectile : MonoBehaviour
     private Vector3 direccionVuelo;
     private EnemyStats objetivo;
     private DamageData daño;
+    private PerfilImpactoPasiva perfilPasiva;
     private float radioArea;
     private int cantidadObjetivos;
     private float velocidad;
@@ -44,13 +45,15 @@ public class TowerProjectile : MonoBehaviour
         DamageData dañoInicial,
         float radioAreaInicial,
         int cantidadObjetivosInicial,
-        float velocidadInicial
+        float velocidadInicial,
+        PerfilImpactoPasiva perfil = default
     )
     {
         rotacionVisualLocal = transform.localRotation;
         objetivo = objetivoInicial;
         tiempoVida = 8f;
         daño = dañoInicial;
+        perfilPasiva = perfil;
         radioArea = Mathf.Max(0f, radioAreaInicial);
         cantidadObjetivos = Mathf.Max(1, cantidadObjetivosInicial);
         velocidad = Mathf.Max(0.1f, velocidadInicial);
@@ -148,7 +151,7 @@ public class TowerProjectile : MonoBehaviour
         TowerImpactVisual.Mostrar(posicionImpacto, radioArea, separacionVisual);
         if (radioArea <= 0f)
         {
-            objetivo.RecibirDanio(daño);
+            SistemaPasivas.AplicarImpacto(objetivo, daño, perfilPasiva, true);
             Destroy(gameObject);
             return;
         }
@@ -156,7 +159,7 @@ public class TowerProjectile : MonoBehaviour
         Collider[] colisiones = Physics.OverlapSphere(posicionImpacto, radioArea);
         HashSet<EnemyStats> objetivos = new HashSet<EnemyStats>();
         objetivos.Add(objetivo);
-        objetivo.RecibirDanio(daño);
+        SistemaPasivas.AplicarImpacto(objetivo, daño, perfilPasiva, true);
         int afectados = 1;
         foreach (Collider colision in colisiones)
         {
@@ -171,7 +174,7 @@ public class TowerProjectile : MonoBehaviour
         {
             if (afectados >= cantidadObjetivos) break;
             if (enemigo == objetivo) continue;
-            enemigo.RecibirDanio(daño);
+            SistemaPasivas.AplicarImpacto(enemigo, daño, perfilPasiva, true);
             afectados++;
             if (afectados >= cantidadObjetivos) break;
         }

@@ -7,6 +7,7 @@ public class FantasyHouseHealth : MonoBehaviour
     [SerializeField] private Image rellenoVida;
 
     public float VidaActual { get; private set; }
+    public float VidaMaxima => vidaMaxima;
 
     void Awake()
     {
@@ -25,7 +26,24 @@ public class FantasyHouseHealth : MonoBehaviour
     {
         if (cantidad <= 0f || VidaActual <= 0f) return;
 
-        VidaActual = Mathf.Max(0f, VidaActual - cantidad);
+        float factor = SistemaPasivas.Eventos.HayDobleDanio ? SistemaPasivas.Eventos.FactorDanioCasa(Random.value) : 1;
+        float recibido = SistemaPasivas.DanioCasa(cantidad) * factor;
+        VidaActual = Mathf.Max(0f, VidaActual - recibido);
+        if (recibido > 0) SistemaPasivas.RegistrarDanioCasa();
+        ActualizarBarra();
+    }
+
+    public void Curar(float cantidad)
+    {
+        if (cantidad <= 0 || VidaActual <= 0) return;
+        VidaActual = Mathf.Min(vidaMaxima, VidaActual + cantidad);
+        ActualizarBarra();
+    }
+
+    public void PagarVidaPorPasiva(float porcentaje)
+    {
+        if (VidaActual <= 0) return;
+        VidaActual *= 1 - Mathf.Clamp01(porcentaje / 100f);
         ActualizarBarra();
     }
 

@@ -1,0 +1,37 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8726371bd1bd45a38f781af0b638496b, type: 3}
+  m_Name: RecompensaPasivas
+  m_EditorClassIdentifier: Assembly-CSharp::RecompensaPasivasDatos
+  fabrica: {fileID: 11400000, guid: beb5711d9bfe4b2ab3b755526fa7df06, type: 2}
+  icono: {fileID: 21300000, guid: b25e3bae39f9db946b95f2e6ff114d1e, type: 3}
+  catalogo:
+  - {fileID: 11400000, guid: bc2a3b9454b941f1bf1ba9b00ee39f5e, type: 2}
+  - {fileID: 11400000, guid: f6a2b728bd884904804a2fa72c6608e9, type: 2}
+  - {fileID: 11400000, guid: 75665518153e4d5795c06f2670e85de4, type: 2}
+  - {fileID: 11400000, guid: eaea81a35f984744b221d1002116942c, type: 2}
+  - {fileID: 11400000, guid: 08b2516851a9430f86248ca37b211e65, type: 2}
+  - {fileID: 11400000, guid: c9746d50da3a446c8547b6b5b72b610f, type: 2}
+  - {fileID: 11400000, guid: 8c0d888238ca4161a5ef99b68d00d63c, type: 2}
+  - {fileID: 11400000, guid: 888864a1d2a249d382549e079b1c5930, type: 2}
+  - {fileID: 11400000, guid: f02081e3b77c466987294286d2f6d312, type: 2}
+  - {fileID: 11400000, guid: 7473ec73383c4aa5a4830f0bda0c0185, type: 2}
+  - {fileID: 11400000, guid: a3fee4a65b57467a86909b1d7a92b7b0, type: 2}
+  - {fileID: 11400000, guid: d262da7b79564b10bcb0b67da23e3e15, type: 2}
+  - {fileID: 11400000, guid: 87f8858a7c3a431aad3f5e614c6bd840, type: 2}
+  - {fileID: 11400000, guid: 130364206b944521bb5725bde8ffbf97, type: 2}
+  - {fileID: 11400000, guid: f8356ed93b8b456ca5b4d48b98ba3d16, type: 2}
+  - {fileID: 11400000, guid: 2e886e46cf4c4938bd43d70c1d2de4c6, type: 2}
+  - {fileID: 11400000, guid: 5a8a88c59b94464abef5d82ebf1eb525, type: 2}
+  - {fileID: 11400000, guid: 7a664cac8e874326be217389ef26c1c5, type: 2}
+  - {fileID: 11400000, guid: 9d5e2fc9c3034d9a8b074e2633e5ac4d, type: 2}
+  - {fileID: 11400000, guid: b824e40466144ba1a4dd8c367ab8cc8d, type: 2}

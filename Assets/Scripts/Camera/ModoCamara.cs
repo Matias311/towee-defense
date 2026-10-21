@@ -12,7 +12,7 @@ public class ModoCamara : MonoBehaviour
 
     void Update()
     {
-        if (Time.timeScale == 0f) return;
+        if (Time.timeScale == 0f || BloqueoEntradaUI.HayPanelAbierto) return;
         if (Input.GetKeyDown(tecla)) Alternar();
     }
 

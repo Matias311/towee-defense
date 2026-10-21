@@ -1,107 +1,59 @@
-using TMPro;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.UI;
 
 public static class ConfigurarCartasHUD
 {
-    [MenuItem("Tools/Cartas/Configurar textos del HUD")]
+    [MenuItem("Tools/Cartas/Configurar torretas y pasivas")]
     [MenuItem("Tools/Cartas/Configurar panel desplegable")]
     public static void Configurar()
     {
-        RectTransform panel = null;
-        foreach (RectTransform candidato in Resources.FindObjectsOfTypeAll<RectTransform>())
+        CartasHUD baraja = Object.FindAnyObjectByType<CartasHUD>();
+        if (baraja == null)
         {
-            if (candidato.name == "PanelCartas" && candidato.gameObject.scene.IsValid()
-                && candidato.gameObject.scene.isLoaded && !EditorUtility.IsPersistent(candidato))
-            {
-                panel = candidato;
-                break;
-            }
-        }
-
-        if (panel == null)
-        {
-            EditorUtility.DisplayDialog("Cartas del HUD", "Abre la escena etapa1 para configurar sus cartas.", "Aceptar");
+            EditorUtility.DisplayDialog("Cartas", "Abre la escena etapa1 para configurar su HUD.", "Aceptar");
             return;
         }
+        var fabrica = AssetDatabase.LoadAssetAtPath<CartaFactory>("Assets/Data/Cartas/FabricaCartas.asset");
+        var datos = new SerializedObject(baraja);
+        datos.FindProperty("fabrica").objectReferenceValue = fabrica;
+        datos.FindProperty("colocador").objectReferenceValue = Object.FindAnyObjectByType<TowerPlacer>();
+        datos.ApplyModifiedProperties();
 
-        Undo.IncrementCurrentGroup();
-        int grupo = Undo.GetCurrentGroup();
-        Undo.SetCurrentGroupName("Configurar textos de las cartas");
-        CartasHUD panelDesplegable = panel.GetComponent<CartasHUD>();
-        if (panelDesplegable == null)
-            panelDesplegable = Undo.AddComponent<CartasHUD>(panel.gameObject);
-        var datosPanel = new SerializedObject(panelDesplegable);
-        if (datosPanel.FindProperty("fabrica").objectReferenceValue == null)
-            datosPanel.FindProperty("fabrica").objectReferenceValue =
-                AssetDatabase.LoadAssetAtPath<CartaFactory>("Assets/Data/Cartas/FabricaCartas.asset");
-        datosPanel.ApplyModifiedProperties();
-        CartaUI seleccion = null;
-        foreach (string nombre in new[] { "CartaNormal", "CartaRara", "CartaEpica", "CartaLegendaria" })
+        PasivasHUD pasivas = Object.FindAnyObjectByType<PasivasHUD>();
+        if (pasivas == null)
         {
-            Transform carta = panel.Find(nombre);
-            if (carta == null)
-                continue;
-
-            CartaUI ui = carta.GetComponent<CartaUI>();
-            bool nueva = ui == null;
-            if (nueva)
-                ui = Undo.AddComponent<CartaUI>(carta.gameObject);
-
-            TMP_Text titulo = CrearTexto(carta, "Titulo", .37f, .45f, 23, true);
-            TMP_Text descripcion = CrearTexto(carta, "Descripcion", .24f, .36f, 20, false);
-            TMP_Text estado = CrearTexto(carta, "Estado", .18f, .23f, 15, true);
-
-            var datos = new SerializedObject(ui);
-            datos.FindProperty("titulo").objectReferenceValue = titulo;
-            datos.FindProperty("descripcion").objectReferenceValue = descripcion;
-            datos.FindProperty("textoEstado").objectReferenceValue = estado;
-            if (nueva)
-                datos.FindProperty("nombre").stringValue = nombre.Replace("Carta", "Carta ");
-            datos.FindProperty("rareza").enumValueIndex = nombre == "CartaLegendaria" ? 3 : nombre == "CartaEpica" ? 2 : nombre == "CartaRara" ? 1 : 0;
-            datos.ApplyModifiedProperties();
-            Undo.RecordObject(ui, "Actualizar carta");
-            ui.Mostrar(ui.Nombre, ui.Efecto);
-            seleccion = ui;
+            var objeto = new GameObject("PanelPasivas", typeof(RectTransform), typeof(Image));
+            Undo.RegisterCreatedObjectUndo(objeto, "Crear acceso a pasivas");
+            objeto.transform.SetParent(baraja.GetComponentInParent<Canvas>().rootCanvas.transform, false);
+            objeto.layer = baraja.gameObject.layer;
+            pasivas = Undo.AddComponent<PasivasHUD>(objeto);
         }
-
-        Undo.CollapseUndoOperations(grupo);
-        EditorSceneManager.MarkSceneDirty(panel.gameObject.scene);
-        if (seleccion != null)
-        {
-            Selection.activeGameObject = seleccion.gameObject;
-            EditorGUIUtility.PingObject(seleccion.gameObject);
-        }
-    }
-
-    private static TMP_Text CrearTexto(Transform carta, string nombre, float abajo, float arriba, float tamano, bool negrita)
-    {
-        Transform existente = carta.Find(nombre);
-        if (existente != null && existente.TryGetComponent(out TMP_Text textoExistente))
-            return textoExistente;
-
-        var objeto = new GameObject(nombre, typeof(RectTransform), typeof(CanvasRenderer), typeof(TextMeshProUGUI));
-        Undo.RegisterCreatedObjectUndo(objeto, "Crear texto de carta");
-        objeto.transform.SetParent(carta, false);
-        objeto.layer = carta.gameObject.layer;
-        var rect = (RectTransform)objeto.transform;
-        rect.anchorMin = new Vector2(.14f, abajo);
-        rect.anchorMax = new Vector2(.86f, arriba);
-        rect.offsetMin = Vector2.zero;
-        rect.offsetMax = Vector2.zero;
-        var texto = objeto.GetComponent<TextMeshProUGUI>();
-        texto.font = TMP_Settings.defaultFontAsset;
-        texto.fontSize = tamano;
-        texto.enableAutoSizing = true;
-        texto.fontSizeMin = 10;
-        texto.fontSizeMax = tamano;
-        texto.fontStyle = negrita ? FontStyles.Bold : FontStyles.Normal;
-        texto.alignment = TextAlignmentOptions.Center;
-        texto.color = new Color(.16f, .13f, .12f);
-        texto.raycastTarget = false;
-        texto.richText = false;
-        texto.overflowMode = TextOverflowModes.Ellipsis;
-        return texto;
+        datos = new SerializedObject(pasivas);
+        if (datos.FindProperty("configuracion").objectReferenceValue == null)
+            datos.FindProperty("configuracion").objectReferenceValue =
+                AssetDatabase.LoadAssetAtPath<RecompensaPasivasDatos>("Assets/Resources/RecompensaPasivas.asset");
+        datos.FindProperty("fabrica").objectReferenceValue = fabrica;
+        Sprite icono = AssetDatabase.LoadAssetAtPath<Sprite>(
+            "Assets/Art/Sprites/Gameplay/interfaceMenu/InterfazAlta/pasivas.png");
+        datos.FindProperty("icono").objectReferenceValue = icono;
+        datos.ApplyModifiedProperties();
+        Undo.RecordObject(pasivas.transform, "Alinear acceso a pasivas");
+        var rect = (RectTransform)pasivas.transform;
+        rect.anchorMin = rect.anchorMax = new Vector2(0, .5f);
+        rect.pivot = new Vector2(0, .5f);
+        rect.anchoredPosition = Vector2.zero;
+        rect.sizeDelta = new Vector2(169, 227);
+        Image imagen = pasivas.GetComponent<Image>();
+        if (imagen == null) imagen = Undo.AddComponent<Image>(pasivas.gameObject);
+        Undo.RecordObject(imagen, "Asignar imagen de pasivas");
+        imagen.sprite = icono;
+        imagen.preserveAspect = true;
+        imagen.raycastTarget = false;
+        imagen.enabled = false;
+        EditorSceneManager.MarkSceneDirty(baraja.gameObject.scene);
+        EditorSceneManager.MarkSceneDirty(pasivas.gameObject.scene);
+        Selection.activeGameObject = pasivas.gameObject;
     }
 }

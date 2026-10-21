@@ -1,5 +1,6 @@
 public class TorreAmetralladoraStats : TowerStats {
-    void Awake() {
+    protected override void Awake() {
         tipo = TowerType.Ametralladora;
+        base.Awake();
     }
 }
