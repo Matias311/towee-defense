@@ -43,6 +43,12 @@ public class CambiarEscena : MonoBehaviour
         SceneManager.LoadScene("MenuJuego"); // o el nombre exacto de tu escena de juego
     }
 
+    // NUEVO: lleva a la escena de seleccion de etapas
+    public void IrAEtapas()
+    {
+        SceneManager.LoadScene("Etapas");
+    }
+
     public void SalirDelJuego()
     {
         Application.Quit();
