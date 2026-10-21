@@ -9915,6 +9915,7 @@ GameObject:
   - component: {fileID: 1584130233}
   - component: {fileID: 1584130232}
   - component: {fileID: 1584130231}
+  - component: {fileID: 1584130234}
   m_Layer: 0
   m_Name: Jugador
   m_TagString: Untagged
@@ -9980,6 +9981,23 @@ Transform:
   - {fileID: 669997408}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1584130234
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1584130230}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c7169fa1346043349b5ec57da312954d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Recolector
+  radio: 2
+  capaMateriales:
+    serializedVersion: 2
+    m_Bits: 8
+  tecla: 101
 --- !u!1 &1589230571
 GameObject:
   m_ObjectHideFlags: 0
@@ -11090,9 +11108,41 @@ MonoBehaviour:
     prefab: {fileID: 919132149155446097, guid: 100d62c27cd9e43e9b1e7035f5b02397, type: 3}
     estadisticas: {fileID: 11400000, guid: 35b582dc67dd44b8b5019e7d220d761e, type: 2}
   estadisticasTorre: {fileID: 11400000, guid: f9fb33706d4d4bdf80ee4a2dbf255c9f, type: 2}
-  puntosPorTorre: 24
-  torresIniciales: 3
+  apariencias: {fileID: 11400000, guid: 06025ef5efda4c1aa1b2bf1e81054cff, type: 2}
+  balanceTorretas:
+    oleadaBalanceFinal: 15
+    tiposIniciales:
+      basica: 40
+      ametralladora: 30
+      francotirador: 15
+      canon: 15
+    tiposFinales:
+      basica: 15
+      ametralladora: 20
+      francotirador: 32.5
+      canon: 32.5
+    rarezasIniciales:
+      normal: 65
+      rara: 25
+      epica: 8
+      legendaria: 2
+    rarezasFinales:
+      normal: 45
+      rara: 32
+      epica: 17
+      legendaria: 6
+    bonosDanio:
+      normal: 0
+      rara: 20
+      epica: 50
+      legendaria: 100
+  preciosTorretas:
+    normal: 50
+    rara: 100
+    epica: 150
+    legendaria: 250
   puntosActuales: 0
+  porcentajeDevolucionVenta: 50
   torresObtenidas: 0
   torresEnInventario: 0
   recompensasAntiRepeticion: 2
@@ -11107,8 +11157,6 @@ MonoBehaviour:
   camaraPrincipal: {fileID: 84026754}
   materialValido: {fileID: 0}
   materialInvalido: {fileID: 0}
-  activarAlIniciar: 1
-  apariencias: {fileID: 11400000, guid: 06025ef5efda4c1aa1b2bf1e81054cff, type: 2}
 --- !u!4 &1761754407
 Transform:
   m_ObjectHideFlags: 0
@@ -17303,7 +17351,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b31ec7f5899941e287591332882b3ba3, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PasivasHUD
   fabrica: {fileID: 11400000, guid: 887a255b500f492d9bd17692258354c2, type: 2}
   configuracion: {fileID: 0}
@@ -17323,7 +17371,7 @@ MonoBehaviour:
   m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -17406,7 +17454,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -17498,7 +17546,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 8d09e537fa7e4fc5b6c17e6e0553c1a4, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MarcadorDineroHUD
   colocador: {fileID: 1761754406}
   texto: {fileID: 2300020172}
@@ -17512,8 +17560,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 45be261077d7443cb4280ba8f7db41e6, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
+  m_Name: 
+  m_EditorClassIdentifier: 
   generador: {fileID: 2001990270}
   punteroEtapa: {fileID: 2300020062}
   gradosPorEtapa: 22.5
@@ -17574,7 +17622,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -17604,8 +17652,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
+  m_Name: 
+  m_EditorClassIdentifier: 
   m_Navigation:
     m_Mode: 0
     m_WrapAround: 0
@@ -17647,7 +17695,7 @@ MonoBehaviour:
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
           m_IntArgument: 0
           m_FloatArgument: 0
-          m_StringArgument:
+          m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
 --- !u!1660057539 &9223372036854775807
