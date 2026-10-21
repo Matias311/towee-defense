@@ -11,6 +11,8 @@ public class TowerStats : TowerBaseStats {
     public bool usarProyectil = true;
     public GameObject prefabProyectil;
     public float velocidadProyectil = 14f;
+    [Range(0f, 95f)] public float ralentizacionImpacto;
+    [Min(0f)] public float duracionRalentizacion;
 
     private float[] baseSinPasivas;
     private float multiplicadorRareza = 1f;
@@ -98,6 +100,8 @@ public class TowerStats : TowerBaseStats {
         usarProyectil = datos.usarProyectil;
         prefabProyectil = datos.prefabProyectil;
         velocidadProyectil = Mathf.Max(0.1f, datos.velocidadProyectil);
+        ralentizacionImpacto = datos.ralentizacionImpacto;
+        duracionRalentizacion = datos.duracionRalentizacion;
         CapturarBase();
         RegistrarLogEstadisticas();
     }
@@ -122,6 +126,8 @@ public class TowerStats : TowerBaseStats {
         usarProyectil = datos.usarProyectil;
         prefabProyectil = datos.prefabProyectil;
         velocidadProyectil = Mathf.Max(0.1f, datos.velocidadProyectil);
+        ralentizacionImpacto = datos.ralentizacionImpacto;
+        duracionRalentizacion = datos.duracionRalentizacion;
         RegistrarLogEstadisticas();
     }
 

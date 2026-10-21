@@ -155,3 +155,50 @@ el avance y el contorno. Los cambios de etapa se notifican desde `EnemySpawner`.
 Comprobación manual pendiente en Play Mode: comprar y colocar ofertas, revisar
 los precios y la opacidad al cambiar el saldo, derrotar bosses y elegir pasivas,
 y comprobar la alineación del puntero al pasar a las etapas 2 y 3.
+
+
+### Cambio de escena tras la recompensa
+
+Elegir la pasiva del boss carga `etapa2`, `etapa3` o `etapa4`, según la escena
+actual. Las escenas deben permanecer habilitadas en Build Settings. Las pasivas
+y sus efectos se conservan entre estas transiciones sin volver a aplicar el
+costo de adquisición. Cargar una etapa fuera de esta continuación inicia una
+partida nueva. Al completar la etapa 4, el generador se detiene tras la elección
+final; no intenta cargar una etapa 5.
+
+
+Las escenas `etapa2`, `etapa3` y `etapa4` incorporan el mismo diseño de HUD de
+`etapa1`, con referencias a su propio generador, tienda, cambio de cámara y
+menú de pausa. Cada panel de pasivas reconstruye la colección desde el estado
+compartido de la partida al entrar en la escena, sin volver a adquirir sus efectos.
+
+
+### Vender una torreta colocada
+
+Hacer clic sobre una torreta real abre una acción `Vender` con su devolución.
+El importe base es el 50 % del precio efectivamente pagado, redondeado hacia
+abajo, y respeta los modificadores de venta de las pasivas. El botón acredita
+el saldo y retira la torre una sola vez. Clic fuera o clic derecho cierra la
+acción; la tecla V sobre una torre sigue funcionando. Los previews no ofrecen
+venta y la acción se oculta al pausar o iniciar otra colocación.
+
+
+### Arte de pasivas y puntero
+
+`Assets/Art/Sprites/Gameplay/interfaceMenu/CartasPasivas` contiene los originales
+WebP y los PNG importables por Unity para las cuatro rarezas. La fábrica
+`Assets/Data/Cartas/FabricaPasivas.asset` usa estos diseños y una disposición de
+texto propia. Las torretas conservan su fábrica anterior. El arte nuevo del
+puntero está en `InterfazAlta/manecilla.png`, conectado en las cuatro etapas.
+
+
+### Bots de torretas
+
+Las cartas de torretas usan los nuevos diseños de `CartasTorres/*Bot.png`.
+`Assets/Resources/AparienciasTorretas.asset` enlaza los PSB completos de
+`Assets/Personajes_con_huesos`: CommonBot (normal), UncommonBot (rara), RareBot
+(épica) y LegendaryBot (legendaria). Se conserva la jerarquía de sprites/huesos,
+se normaliza su altura y se orientan hacia la cámara. La previsualización y la
+torre colocada usan el mismo modelo según la rareza. El tipo de combate de la
+oferta conserva las estadísticas de `Assets/Data/Torretas`, independientemente
+del aspecto. La altura visual es editable en el catálogo de apariencias.

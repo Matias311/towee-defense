@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 /// <summary>Copia los modificadores de los assets; conserva el balance de cada adquisición.</summary>
 public sealed class BonosPasivas
@@ -94,6 +95,20 @@ public static class SistemaPasivas
     public static EstadoEventosPasivas Eventos { get; private set; } = new EstadoEventosPasivas();
     private static readonly List<TorreColocada> torres = new List<TorreColocada>();
     private static int ultimoFrameActualizado = -1;
+    private static readonly List<PasivaDatos> adquiridas = new List<PasivaDatos>();
+    public static IReadOnlyList<PasivaDatos> Adquiridas => adquiridas;
+    private static Scene escenaPreparada;
+    private static string escenaContinuacion;
+
+    public static void PrepararContinuacion(string nombreEscena) => escenaContinuacion = nombreEscena;
+
+    public static void PrepararEscena(Scene escena)
+    {
+        if (escena == escenaPreparada) return;
+        if (escena.name != escenaContinuacion) ReiniciarPartida();
+        escenaContinuacion = null;
+        escenaPreparada = escena;
+    }
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
     private static void Reiniciar()
@@ -101,6 +116,9 @@ public static class SistemaPasivas
         bonos = new BonosPasivas();
         Eventos = new EstadoEventosPasivas();
         torres.Clear();
+        adquiridas.Clear();
+        escenaPreparada = default;
+        escenaContinuacion = null;
         ultimoFrameActualizado = -1;
     }
 
@@ -113,13 +131,20 @@ public static class SistemaPasivas
 
     public static void AplicarImpacto(EnemyStats objetivo, DamageData danio, PerfilImpactoPasiva perfil, bool esProyectil = false)
     {
-        if (objetivo == null || objetivo.vidaActual <= 0) return;
-        if (esProyectil && objetivo.ConsumirEscudoProyectil()) return;
+        AplicarImpactoConResultado(objetivo, danio, perfil, esProyectil);
+    }
+
+    public static bool AplicarImpactoConResultado(EnemyStats objetivo, DamageData danio, PerfilImpactoPasiva perfil, bool esProyectil = false)
+    {
+        if (objetivo == null || objetivo.vidaActual <= 0) return false;
+        if (esProyectil && objetivo.ConsumirEscudoProyectil()) return false;
         bool jefe = objetivo.esMiniJefe || (objetivo.tipo >= EnemyType.BossL1 && objetivo.tipo <= EnemyType.BossL4);
         DamageData resuelto = perfil.Resolver(danio, objetivo.vidaActual, jefe, Random.value, Random.value);
+        float vidaAnterior = objetivo.vidaActual;
         objetivo.RecibirDanio(resuelto);
         if (objetivo.vidaActual > 0 && PerfilImpactoPasiva.Ocurre(perfil.sangrado, Random.value))
             objetivo.AplicarSangrado(resuelto.cantidad * perfil.danioSangrado / 100f, perfil.duracionSangrado);
+        return objetivo.vidaActual < vidaAnterior;
     }
 
     public static float Calcular(EstadisticaPasiva estadistica, float valorBase, TowerType tipo) =>
@@ -196,6 +221,8 @@ public static class SistemaPasivas
 
     public static void Adquirir(PasivaDatos datos)
     {
+        if (datos == null) return;
+        adquiridas.Add(datos);
         AdquirirInterna(datos, new HashSet<PasivaDatos>());
         RecalcularTorres();
         foreach (var enemigo in Object.FindObjectsByType<EnemyStats>()) ConfigurarEscudo(enemigo);

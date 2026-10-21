@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8726371bd1bd45a38f781af0b638496b, type: 3}
   m_Name: RecompensaPasivas
   m_EditorClassIdentifier: Assembly-CSharp::RecompensaPasivasDatos
-  fabrica: {fileID: 11400000, guid: beb5711d9bfe4b2ab3b755526fa7df06, type: 2}
+  fabrica: {fileID: 11400000, guid: 887a255b500f492d9bd17692258354c2, type: 2}
   icono: {fileID: 21300000, guid: b25e3bae39f9db946b95f2e6ff114d1e, type: 3}
   catalogo:
   - {fileID: 11400000, guid: bc2a3b9454b941f1bf1ba9b00ee39f5e, type: 2}

@@ -41,4 +41,6 @@ public class EnemyStatsData : ScriptableObject {
     public float bonusPasiva = 0.1f;
     public float duracionDañoAlterado = 3f;
     public int recompensa = 10;
+    [Min(.1f), Tooltip("Multiplica la velocidad de la oleada: 1 = normal, 0.65 = boss lento.")]
+    public float multiplicadorVelocidad = 1f;
 }

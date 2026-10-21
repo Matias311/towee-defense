@@ -37,7 +37,7 @@ public class PasivasHUD : MonoBehaviour, IPointerClickHandler
     {
         if (configuracion == null) configuracion = Resources.Load<RecompensaPasivasDatos>("RecompensaPasivas");
         if (configuracion == null) return;
-        if (fabrica == null) fabrica = configuracion.fabrica;
+        if (configuracion.fabrica != null) fabrica = configuracion.fabrica;
         if (icono == null) icono = configuracion.icono;
         cartasDesbloqueables = new List<PasivaDatos>(configuracion.catalogo);
     }
@@ -96,7 +96,7 @@ public class PasivasHUD : MonoBehaviour, IPointerClickHandler
 
     private void Awake()
     {
-        SistemaPasivas.ReiniciarPartida();
+        SistemaPasivas.PrepararEscena(gameObject.scene);
         InicializarMano();
     }
 
@@ -219,6 +219,8 @@ public class PasivasHUD : MonoBehaviour, IPointerClickHandler
         if (inicializada) return;
         inicializada = true;
         CargarConfiguracion();
+        foreach (PasivaDatos datos in SistemaPasivas.Adquiridas)
+            mano.Add(new CartaInstancia(datos));
         // El controlador de respaldo creado por el boss también necesita un Canvas para el icono.
         if (GetComponentInParent<Canvas>() == null)
         {

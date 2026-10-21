@@ -12,8 +12,11 @@ public class TowerHoverInfo : MonoBehaviour
     private TextMeshProUGUI texto;
     private Camera camara;
 
+    private bool VentaAbierta => VentaTorreHUD.EstaSeleccionada(GetComponent<TorreColocada>());
+
     public void MostrarEstadisticas()
     {
+        if (VentaAbierta) return;
         if (camara == null) camara = Camera.main;
         CrearPanel();
         ActualizarPanel();
@@ -21,8 +24,8 @@ public class TowerHoverInfo : MonoBehaviour
 
     public void OcultarEstadisticas()
     {
-        if (panel != null) Destroy(panel);
-        if (canvasObject != null) Destroy(canvasObject);
+        if (panel != null) { panel.SetActive(false); Destroy(panel); }
+        if (canvasObject != null) { canvasObject.SetActive(false); Destroy(canvasObject); }
         panel = null;
         canvasObject = null;
         texto = null;
@@ -38,6 +41,7 @@ public class TowerHoverInfo : MonoBehaviour
 
     void OnMouseEnter()
     {
+        if (VentaAbierta) return;
         if (camara == null) camara = Camera.main;
         if (visualizadorRango != null) visualizadorRango.SetVisible(true);
         CrearPanel();
@@ -46,6 +50,11 @@ public class TowerHoverInfo : MonoBehaviour
 
     void LateUpdate()
     {
+        if (VentaAbierta)
+        {
+            OcultarEstadisticas();
+            return;
+        }
         if (panel == null) return;
 
         ActualizarPanel();

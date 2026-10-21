@@ -41,7 +41,7 @@ public class RelojOleadasHUD : MonoBehaviour
             Canvas canvas = GetComponentInParent<Canvas>();
             if (canvas != null)
                 foreach (Image imagen in canvas.rootCanvas.GetComponentsInChildren<Image>(true))
-                    if (imagen.sprite != null && imagen.sprite.name == "manecillaoleadas")
+                    if (imagen.sprite != null && (imagen.sprite.name == "manecillaoleadas" || imagen.sprite.name == "manecilla"))
                     {
                         punteroEtapa = imagen.rectTransform;
                         break;

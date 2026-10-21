@@ -34,7 +34,8 @@ public static class ConfigurarCartasHUD
         if (datos.FindProperty("configuracion").objectReferenceValue == null)
             datos.FindProperty("configuracion").objectReferenceValue =
                 AssetDatabase.LoadAssetAtPath<RecompensaPasivasDatos>("Assets/Resources/RecompensaPasivas.asset");
-        datos.FindProperty("fabrica").objectReferenceValue = fabrica;
+        datos.FindProperty("fabrica").objectReferenceValue = AssetDatabase.LoadAssetAtPath<CartaFactory>(
+            "Assets/Data/Cartas/FabricaPasivas.asset");
         Sprite icono = AssetDatabase.LoadAssetAtPath<Sprite>(
             "Assets/Art/Sprites/Gameplay/interfaceMenu/InterfazAlta/pasivas.png");
         datos.FindProperty("icono").objectReferenceValue = icono;
